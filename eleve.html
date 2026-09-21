@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Le Marathon des Macarons – Quiz de français</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='23' rx='27' ry='16' fill='%23f6a0b4'/%3E%3Crect x='3' y='27' width='58' height='12' rx='6' fill='%23ffe7ee'/%3E%3Cellipse cx='32' cy='43' rx='27' ry='16' fill='%23de4f70'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/macaron.css">
+  <link rel="stylesheet" href="assets/player.css">
+  <style>
+    .dropzone {
+      border: 2px dashed var(--bord);
+      border-radius: var(--rayon);
+      padding: 22px;
+      text-align: center;
+      background: var(--coque-2);
+      transition: border-color .15s ease, background .15s ease;
+    }
+    .dropzone.survol { border-color: var(--framboise); background: var(--framboise-voile); }
+    .dropzone input[type="file"] { margin: 10px auto 0; max-width: 320px; }
+    .resume { display: grid; gap: 6px; margin: 0 0 1rem; padding: 0; list-style: none; }
+    .resume li { display: flex; gap: .5rem; align-items: baseline; font-size: .92rem; }
+    .resume b { font-weight: 700; }
+    .nom-actuel { font-size: 1.5rem; font-weight: 800; color: var(--framboise); }
+    .reglages { border-top: 1px solid var(--bord); margin-top: 1rem; padding-top: 1rem; }
+    .reglages fieldset { border: none; padding: 0; margin: 0 0 .8rem; }
+    .reglages legend { font-weight: 700; font-size: .88rem; padding: 0; margin-bottom: .35rem; }
+  </style>
+</head>
+<body>
+  <div class="page page--etroite">
+    <div class="topbar">
+      <div class="brand">
+        <span class="macaron macaron--l" data-flavor="framboise" aria-hidden="true">
+          <i class="coque-haut"></i><i class="ganache"></i><i class="coque-bas"></i>
+        </span>
+        <div>
+          <h1>Le Marathon des Macarons</h1>
+          <p class="muted small" id="sousTitre">Quiz de français – à toi de jouer !</p>
+        </div>
+      </div>
+      <div class="spacer"></div>
+      <button type="button" class="theme-toggle" id="btnTheme" title="Changer les couleurs">🎨</button>
+    </div>
+
+    <!-- 1. Charger -->
+    <section class="card card--ganache" data-ecran="charger">
+      <h2>1. Charge ton quiz</h2>
+      <p class="muted">Choisis le fichier <strong>.json</strong> que ton professeur ou ta professeure t'a donné.</p>
+      <div class="dropzone" id="zoneDepot">
+        <div style="font-size:2rem" aria-hidden="true">🍬</div>
+        <p class="small muted" style="margin:.2rem 0 0">Glisse le fichier ici ou choisis-le&nbsp;:</p>
+        <input type="file" id="fichierQuiz" accept=".json,application/json" aria-label="Fichier du quiz">
+      </div>
+      <div class="row row--center" style="margin-top:1rem">
+        <button type="button" class="btn btn--doux" id="btnDemo">🍪 Essayer le quiz de démonstration</button>
+      </div>
+    </section>
+
+    <!-- 2. Préparation -->
+    <section class="card card--ganache hidden" data-ecran="preparer">
+      <h2 id="titreQuiz">Quiz</h2>
+      <p class="muted" id="sousTitreQuiz"></p>
+
+      <ul class="resume" id="resumeQuiz"></ul>
+
+      <div class="card" style="box-shadow:none">
+        <h3>Ton nom de course</h3>
+        <p class="muted small">Un prénom est tiré au sort. Tu peux le changer ou écrire le tien.</p>
+        <p class="nom-actuel" id="nomActuel">Camille</p>
+        <div class="row">
+          <input type="text" id="champNom" maxlength="28" aria-label="Ton nom" placeholder="Ton nom">
+          <button type="button" class="btn btn--doux" id="btnTirerNom">🎲 Tirer un autre nom</button>
+        </div>
+        <p class="small muted hidden" id="meilleurScore"></p>
+      </div>
+
+      <div class="reglages hidden" id="reglagesEleve">
+        <h3>Tes réglages</h3>
+        <p class="muted small">Ton professeur t'autorise à choisir toi-même.</p>
+
+        <fieldset>
+          <legend>Ordre des questions</legend>
+          <label class="check"><input type="radio" name="ordre" value="sequential"><span>Dans l'ordre du quiz</span></label>
+          <label class="check"><input type="radio" name="ordre" value="random"><span>Au hasard 🎲</span></label>
+        </fieldset>
+
+        <fieldset>
+          <legend>Nombre de questions</legend>
+          <label class="check"><input type="radio" name="nombre" value="all"><span>Toutes les questions (<span id="totalQuestions">0</span>)</span></label>
+          <label class="check">
+            <input type="radio" name="nombre" value="fixed">
+            <span>Exactement
+              <input type="number" class="nombre-mini" id="nombreExact" min="1" value="10" aria-label="Nombre exact de questions">
+              questions</span>
+          </label>
+          <label class="check">
+            <input type="radio" name="nombre" value="range">
+            <span>Au hasard entre
+              <input type="number" class="nombre-mini" id="nombreMin" min="1" value="5" aria-label="Minimum">
+              et
+              <input type="number" class="nombre-mini" id="nombreMax" min="1" value="10" aria-label="Maximum">
+              questions</span>
+          </label>
+        </fieldset>
+      </div>
+
+      <div class="row row--center" style="margin-top:1rem">
+        <button type="button" class="btn" id="btnCommencer">🏁 Commencer le marathon</button>
+        <button type="button" class="btn btn--doux" id="btnAutreQuiz">Changer de quiz</button>
+      </div>
+    </section>
+
+    <!-- 3. Jeu -->
+    <section class="hidden" data-ecran="jeu">
+      <div id="zoneJeu"></div>
+      <div class="row row--center" style="margin-top:1rem">
+        <button type="button" class="btn btn--doux btn--mini" id="btnAbandonner">Quitter le quiz</button>
+      </div>
+    </section>
+
+    <footer class="app-footer">
+      Le Marathon des Macarons · quiz de français hors ligne 🇫🇷
+    </footer>
+  </div>
+
+  <script src="assets/core.js"></script>
+  <script src="assets/player.js"></script>
+  <script src="assets/demo.js"></script>
+  <script src="assets/eleve.js"></script>
+</body>
+</html>

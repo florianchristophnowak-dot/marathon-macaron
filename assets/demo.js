@@ -1,0 +1,147 @@
+/* Beispiel-Quiz, damit beide Apps ohne Datei sofort ausprobiert werden koennen.
+   Es wird als window.MACARON_DEMO bereitgestellt (kein fetch – laeuft per file://).
+   Dieselben Daten liegen als Datei unter exemples/marathon-des-macarons.json. */
+window.MACARON_DEMO = {
+  "format": "marathon-macaron-quiz",
+  "version": 1,
+  "id": "quiz_demo_macaron",
+  "title": "Le Marathon des Macarons – Tour d'échauffement",
+  "subtitle": "Présent, articles et vocabulaire du quotidien (A1–A2)",
+  "author": "Atelier des Macarons",
+  "settings": {
+    "order": "sequential",
+    "countMode": "all",
+    "count": 8,
+    "countMin": 5,
+    "countMax": 8,
+    "pick": "start",
+    "shuffleOptions": true,
+    "allowHints": true,
+    "hintPenalty": 30,
+    "speedBonus": true,
+    "comboBonus": true,
+    "showExplanations": true,
+    "ignoreAccents": true,
+    "allowStudentSettings": true
+  },
+  "questions": [
+    {
+      "id": "q_demo_1",
+      "type": "mcq",
+      "discipline": "Marathon de macarons",
+      "prompt": "Je ___ au cinéma avec ma sœur.",
+      "options": ["vais", "vas", "va", "allons"],
+      "correctIndex": 0,
+      "hint": "aller : je vais, tu vas, il/elle va, nous allons",
+      "explanation": "Le verbe « aller » au présent : je vais, tu vas, il/elle va, nous allons, vous allez, ils/elles vont.",
+      "answers": [], "correctVF": "vrai", "gapText": "", "gaps": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_2",
+      "type": "vf",
+      "discipline": "Course de baguette",
+      "prompt": "Le mot « la voiture » est masculin.",
+      "correctVF": "faux",
+      "explanation": "« La voiture » est féminin : la voiture, une voiture.",
+      "options": ["", "", "", ""], "correctIndex": 0, "answers": [], "hint": "", "gapText": "", "gaps": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_3",
+      "type": "text",
+      "discipline": "Slalom de croissant",
+      "prompt": "Comment dit-on « Guten Tag » en français ?",
+      "answers": ["bonjour"],
+      "hint": "On le dit le matin et l'après-midi.",
+      "explanation": "« Bonjour » s'utilise toute la journée, « bonsoir » à partir du soir.",
+      "options": ["", "", "", ""], "correctIndex": 0, "correctVF": "vrai", "gapText": "", "gaps": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_4",
+      "type": "gap",
+      "discipline": "Relais de la Tour Eiffel",
+      "prompt": "Complète avec le verbe « avoir ».",
+      "gapText": "Nous ___ trois macarons et tu ___ un croissant.",
+      "gaps": ["avons", "as"],
+      "explanation": "avoir : j'ai, tu as, il/elle a, nous avons, vous avez, ils/elles ont.",
+      "options": ["", "", "", ""], "correctIndex": 0, "correctVF": "vrai", "answers": [], "hint": "", "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_5",
+      "type": "mcq",
+      "discipline": "Sprint de camembert",
+      "prompt": "___ pomme est rouge.",
+      "options": ["La", "Le", "Les", "Un"],
+      "correctIndex": 0,
+      "explanation": "« Pomme » est un nom féminin singulier : la pomme, une pomme.",
+      "answers": [], "correctVF": "vrai", "hint": "", "gapText": "", "gaps": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_6",
+      "type": "gap",
+      "discipline": "Duel de béret",
+      "prompt": "Complète avec « être » et « habiter ».",
+      "gapText": "Elle ___ française et elle ___ à Lyon.",
+      "gaps": ["est", "habite"],
+      "explanation": "être : je suis, tu es, il/elle est… ; habiter : j'habite, tu habites, il/elle habite.",
+      "options": ["", "", "", ""], "correctIndex": 0, "correctVF": "vrai", "answers": [], "hint": "", "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_7",
+      "type": "vf",
+      "discipline": "Danse du cancan",
+      "prompt": "« Le petit déjeuner » signifie « das Frühstück ».",
+      "correctVF": "vrai",
+      "explanation": "Oui : le petit déjeuner (matin), le déjeuner (midi), le dîner (soir).",
+      "options": ["", "", "", ""], "correctIndex": 0, "answers": [], "hint": "", "gapText": "", "gaps": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_8",
+      "type": "text",
+      "discipline": "Rallye du fromage",
+      "prompt": "Traduis en français : « Ich heiße Marie. »",
+      "answers": ["je m'appelle marie"],
+      "hint": "s'appeler : je m'appelle, tu t'appelles…",
+      "explanation": "« Je m'appelle Marie. » – le verbe pronominal « s'appeler ».",
+      "options": ["", "", "", ""], "correctIndex": 0, "correctVF": "vrai", "gapText": "", "gaps": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_9",
+      "type": "mcq",
+      "discipline": "Défi du café au lait",
+      "prompt": "« Quatre-vingt-dix », c'est quel nombre ?",
+      "options": ["90", "70", "80", "100"],
+      "correctIndex": 0,
+      "explanation": "quatre-vingt-dix = 4 × 20 + 10 = 90.",
+      "answers": [], "correctVF": "vrai", "hint": "", "gapText": "", "gaps": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_10",
+      "type": "gap",
+      "discipline": "Course de crêpes",
+      "prompt": "Complète avec « prendre ».",
+      "gapText": "Vous ___ un café ?",
+      "gaps": ["prenez"],
+      "explanation": "prendre : je prends, tu prends, il/elle prend, nous prenons, vous prenez, ils/elles prennent.",
+      "options": ["", "", "", ""], "correctIndex": 0, "correctVF": "vrai", "answers": [], "hint": "", "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_11",
+      "type": "mcq",
+      "discipline": "Concours de chocolat chaud",
+      "prompt": "Quelle phrase est correcte ?",
+      "options": ["J'ai faim.", "Je suis faim.", "J'ai de faim.", "Je fais faim."],
+      "correctIndex": 0,
+      "explanation": "En français on utilise « avoir » : avoir faim, avoir soif, avoir chaud.",
+      "answers": [], "correctVF": "vrai", "hint": "", "gapText": "", "gaps": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_12",
+      "type": "vf",
+      "discipline": "Course des escargots",
+      "prompt": "Pour donner son âge, on dit « je suis 15 ans ».",
+      "correctVF": "faux",
+      "explanation": "On dit « j'ai 15 ans » – avec le verbe « avoir ».",
+      "options": ["", "", "", ""], "correctIndex": 0, "answers": [], "hint": "", "gapText": "", "gaps": [], "ignoreAccents": true
+    }
+  ]
+};

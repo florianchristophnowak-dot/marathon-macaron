@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>L'Atelier des Macarons – Lehrkraft-Editor</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='23' rx='27' ry='16' fill='%23a9d9ad'/%3E%3Crect x='3' y='27' width='58' height='12' rx='6' fill='%23eefaea'/%3E%3Cellipse cx='32' cy='43' rx='27' ry='16' fill='%236cb175'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/macaron.css">
+  <link rel="stylesheet" href="assets/player.css">
+  <link rel="stylesheet" href="assets/atelier.css">
+</head>
+<body>
+  <div class="atelier">
+    <!-- Seitenleiste: Bibliothek -->
+    <aside class="sidebar">
+      <div class="card card--ganache">
+        <div class="brand" style="margin-bottom:.6rem">
+          <span class="macaron macaron--l" data-flavor="pistache" aria-hidden="true">
+            <i class="coque-haut"></i><i class="ganache"></i><i class="coque-bas"></i>
+          </span>
+          <div>
+            <h1 style="font-size:1.25rem">L'Atelier</h1>
+            <p class="muted small">Lehrkraft-Editor</p>
+          </div>
+        </div>
+
+        <div class="row" style="margin-bottom:.6rem">
+          <button type="button" class="btn btn--mini" id="btnNeu">+ Neues Quiz</button>
+          <button type="button" class="btn btn--doux btn--mini" id="btnBeispiel">Beispiel laden</button>
+        </div>
+        <div class="row" style="margin-bottom:.8rem">
+          <button type="button" class="btn btn--doux btn--mini" id="btnImport">📂 JSON importieren</button>
+          <input type="file" id="dateiImport" accept=".json,application/json" class="hidden">
+        </div>
+
+        <label for="suche" class="tiny muted">Bibliothek durchsuchen</label>
+        <input type="search" id="suche" placeholder="Titel suchen…">
+        <div class="biblio" id="biblio"></div>
+
+        <div class="row" style="margin-top:.9rem">
+          <button type="button" class="theme-toggle" id="btnTheme">🎨 Farben</button>
+          <a class="theme-toggle" href="eleve.html" target="_blank" rel="noopener">▶ Schüler-App</a>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Hauptbereich -->
+    <main>
+      <div class="card card--ganache" style="margin-bottom:16px">
+        <div class="grid-2">
+          <div class="field">
+            <label for="titre">Titel des Quiz</label>
+            <input type="text" id="titre" placeholder="z. B. Les verbes au présent">
+          </div>
+          <div class="field">
+            <label for="sousTitre">Untertitel (optional)</label>
+            <input type="text" id="sousTitre" placeholder="z. B. Klasse 7 – Unité 3">
+          </div>
+        </div>
+        <div class="row row--between">
+          <span class="pill pill--pistache" id="etatQuiz">0 Fragen</span>
+          <div class="row">
+            <button type="button" class="btn btn--lavande" id="btnApercu">👀 Vorschau spielen</button>
+            <button type="button" class="btn" id="btnExport">💾 Als JSON speichern</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="tabs" role="tablist">
+        <button type="button" class="tab" role="tab" data-tab="fragen" aria-selected="true">1 · Fragen</button>
+        <button type="button" class="tab" role="tab" data-tab="ablauf" aria-selected="false">2 · Spielablauf</button>
+        <button type="button" class="tab" role="tab" data-tab="teilen" aria-selected="false">3 · Teilen</button>
+      </div>
+
+      <!-- Tab: Fragen -->
+      <section data-panel="fragen">
+        <div class="card">
+          <div class="row row--between" style="margin-bottom:.8rem">
+            <div class="row">
+              <button type="button" class="btn btn--mini" data-ajouter="mcq">+ Multiple Choice</button>
+              <button type="button" class="btn btn--mini" data-ajouter="vf">+ vrai / faux</button>
+              <button type="button" class="btn btn--mini" data-ajouter="text">+ Freitext</button>
+              <button type="button" class="btn btn--mini" data-ajouter="gap">+ Lückentext</button>
+            </div>
+            <div class="row">
+              <button type="button" class="btn btn--doux btn--mini" id="btnAlleAuf">Alle aufklappen</button>
+              <button type="button" class="btn btn--doux btn--mini" id="btnAlleZu">Alle zuklappen</button>
+            </div>
+          </div>
+          <div id="listeFragen"></div>
+        </div>
+      </section>
+
+      <!-- Tab: Spielablauf -->
+      <section data-panel="ablauf" class="hidden">
+        <div class="card">
+          <h2>Wie läuft das Quiz für die Klasse ab?</h2>
+          <p class="muted small">Diese Einstellungen werden in der JSON-Datei mitgespeichert.</p>
+
+          <div class="grid-2">
+            <fieldset style="border:none;padding:0;margin:0 0 1rem">
+              <legend style="font-weight:700;font-size:.92rem;margin-bottom:.4rem">Reihenfolge der Fragen</legend>
+              <label class="check"><input type="radio" name="order" value="sequential"><span>In der Reihenfolge des Editors</span></label>
+              <label class="check"><input type="radio" name="order" value="random"><span>Zufällig mischen 🎲</span></label>
+
+              <div id="blocAuswahl" class="hidden" style="margin-top:.4rem;padding-left:1.6rem">
+                <p class="tiny muted" style="margin-bottom:.3rem">Es werden nicht alle Fragen gespielt – welche sollen es sein?</p>
+                <label class="check"><input type="radio" name="pick" value="start"><span>Die ersten Fragen der Liste</span></label>
+                <label class="check"><input type="radio" name="pick" value="random"><span>Zufällige Auswahl (Reihenfolge bleibt erhalten)</span></label>
+              </div>
+            </fieldset>
+
+            <fieldset style="border:none;padding:0;margin:0 0 1rem">
+              <legend style="font-weight:700;font-size:.92rem;margin-bottom:.4rem">Anzahl der Fragen</legend>
+              <label class="check"><input type="radio" name="countMode" value="all"><span>Alle Fragen (<span id="anzahlGesamt">0</span>)</span></label>
+              <label class="check"><input type="radio" name="countMode" value="fixed">
+                <span>Genau <input type="number" class="nombre-mini" id="countFixed" min="1" value="10"> Fragen</span>
+              </label>
+              <label class="check"><input type="radio" name="countMode" value="range">
+                <span>Zufällig zwischen <input type="number" class="nombre-mini" id="countMin" min="1" value="5">
+                  und <input type="number" class="nombre-mini" id="countMax" min="1" value="10"> Fragen</span>
+              </label>
+            </fieldset>
+          </div>
+
+          <div class="recette" id="recette">…</div>
+
+          <h3 style="margin-top:1.2rem">Spielregeln</h3>
+          <div class="grid-2">
+            <div>
+              <label class="check"><input type="checkbox" id="shuffleOptions"><span>Antwortoptionen mischen (Multiple Choice)</span></label>
+              <label class="check"><input type="checkbox" id="allowHints"><span>Indizes (Tipps) erlauben</span></label>
+              <label class="check" style="padding-left:1.6rem">
+                <span>Punktabzug pro Tipp: <input type="number" class="nombre-mini" id="hintPenalty" min="0" max="200" value="30"></span>
+              </label>
+              <label class="check"><input type="checkbox" id="showExplanations"><span>Erklärungen im Feedback zeigen</span></label>
+            </div>
+            <div>
+              <label class="check"><input type="checkbox" id="speedBonus"><span>Tempo-Bonus (bis +50 Punkte)</span></label>
+              <label class="check"><input type="checkbox" id="comboBonus"><span>Serien-Bonus (+40 ab 3 richtigen in Folge)</span></label>
+              <label class="check"><input type="checkbox" id="ignoreAccents"><span>Akzente bei Freitext ignorieren (Standard für neue Fragen)</span></label>
+              <label class="check"><input type="checkbox" id="allowStudentSettings"><span>Schüler*innen dürfen Reihenfolge und Anzahl selbst wählen</span></label>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Tab: Teilen -->
+      <section data-panel="teilen" class="hidden">
+        <div class="card">
+          <h2>Quiz an die Klasse geben</h2>
+          <ol class="etapes">
+            <li><span>Quiz hier fertigstellen und mit <strong>„Als JSON speichern"</strong> herunterladen.</span></li>
+            <li><span>Die JSON-Datei verteilen – per Mail, Lernplattform, USB-Stick oder gemeinsamem Ordner.</span></li>
+            <li><span>Die Klasse öffnet <code>eleve.html</code> (Schüler-App) im Browser.</span></li>
+            <li><span>Dort die JSON-Datei laden – und los geht der Marathon.</span></li>
+          </ol>
+          <div class="row" style="margin-top:1rem">
+            <button type="button" class="btn" id="btnExport2">💾 Als JSON speichern</button>
+            <button type="button" class="btn btn--doux" id="btnKopieren">📋 JSON kopieren</button>
+            <button type="button" class="btn btn--danger btn--mini" id="btnLoeschen">🗑 Dieses Quiz löschen</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>Prüfung</h3>
+          <div id="controle"></div>
+        </div>
+
+        <div class="card">
+          <h3>JSON-Inhalt</h3>
+          <p class="muted small">Nur zur Kontrolle – die Datei entsteht beim Speichern automatisch.</p>
+          <textarea class="json-brut" id="jsonBrut" readonly spellcheck="false"></textarea>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <footer class="app-footer">
+    L'Atelier des Macarons · Französisch-Quiz für den Unterricht · alles bleibt lokal auf diesem Gerät
+  </footer>
+
+  <script src="assets/core.js"></script>
+  <script src="assets/player.js"></script>
+  <script src="assets/demo.js"></script>
+  <script src="assets/lehrer.js"></script>
+</body>
+</html>

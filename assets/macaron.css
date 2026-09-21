@@ -1,0 +1,478 @@
+/* ==========================================================================
+   Le Marathon des Macarons – gemeinsames Design-System
+   Ein Macaron besteht aus zwei Schalen (coques) und einer Fuellung (ganache).
+   Dieses Motiv zieht sich durch Farben, Karten, Buttons und Fortschritt.
+   ========================================================================== */
+
+/* ---------- 1. Farbtoken ---------- */
+:root {
+  color-scheme: light dark;
+
+  /* Grundflaechen */
+  --creme: #fdf4ec;
+  --creme-2: #f6e6d8;
+  --coque: #fffaf5;
+  --coque-2: #fff3e9;
+  --encre: #3d2a30;
+  --doux: #8a7079;
+  --bord: #efdcd1;
+  --ombre: 0 10px 30px rgba(94, 54, 66, 0.10);
+  --ombre-forte: 0 18px 44px rgba(94, 54, 66, 0.18);
+
+  /* Macaron-Sorten */
+  --framboise: #de4f70;
+  --framboise-clair: #f38aa2;
+  --framboise-voile: rgba(222, 79, 112, 0.12);
+  --pistache: #66b06f;
+  --pistache-voile: rgba(102, 176, 111, 0.14);
+  --lavande: #9b7fdb;
+  --lavande-voile: rgba(155, 127, 219, 0.14);
+  --citron: #e0a52c;
+  --citron-voile: rgba(224, 165, 44, 0.16);
+  --myrtille: #5f77dd;
+  --myrtille-voile: rgba(95, 119, 221, 0.14);
+  --chocolat: #7d5241;
+
+  /* Bedeutungen */
+  --juste: var(--pistache);
+  --faux: var(--framboise);
+  --champ-bg: #fffdfb;
+
+  --rayon: 20px;
+  --rayon-s: 12px;
+  --police: "Avenir Next", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Dunkles Schema: Schokoladen-Atelier */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --creme: #1d1418;
+    --creme-2: #241a1f;
+    --coque: #2a1e23;
+    --coque-2: #33242a;
+    --encre: #f6e8e2;
+    --doux: #b59ca5;
+    --bord: #453137;
+    --ombre: 0 10px 30px rgba(0, 0, 0, 0.45);
+    --ombre-forte: 0 18px 44px rgba(0, 0, 0, 0.6);
+    --framboise: #f2718e;
+    --framboise-clair: #f9a3b7;
+    --framboise-voile: rgba(242, 113, 142, 0.18);
+    --pistache: #86cb8e;
+    --pistache-voile: rgba(134, 203, 142, 0.18);
+    --lavande: #b79ff0;
+    --lavande-voile: rgba(183, 159, 240, 0.18);
+    --citron: #f0c057;
+    --citron-voile: rgba(240, 192, 87, 0.2);
+    --myrtille: #8b9df0;
+    --myrtille-voile: rgba(139, 157, 240, 0.18);
+    --champ-bg: #221a1e;
+  }
+}
+:root[data-theme="dark"] {
+  --creme: #1d1418;
+  --creme-2: #241a1f;
+  --coque: #2a1e23;
+  --coque-2: #33242a;
+  --encre: #f6e8e2;
+  --doux: #b59ca5;
+  --bord: #453137;
+  --ombre: 0 10px 30px rgba(0, 0, 0, 0.45);
+  --ombre-forte: 0 18px 44px rgba(0, 0, 0, 0.6);
+  --framboise: #f2718e;
+  --framboise-clair: #f9a3b7;
+  --framboise-voile: rgba(242, 113, 142, 0.18);
+  --pistache: #86cb8e;
+  --pistache-voile: rgba(134, 203, 142, 0.18);
+  --lavande: #b79ff0;
+  --lavande-voile: rgba(183, 159, 240, 0.18);
+  --citron: #f0c057;
+  --citron-voile: rgba(240, 192, 87, 0.2);
+  --myrtille: #8b9df0;
+  --myrtille-voile: rgba(139, 157, 240, 0.18);
+  --champ-bg: #221a1e;
+}
+
+/* ---------- 2. Basis ---------- */
+* { box-sizing: border-box; }
+
+html, body { min-height: 100%; }
+
+body {
+  margin: 0;
+  font-family: var(--police);
+  color: var(--encre);
+  background:
+    radial-gradient(circle at 12% -4%, var(--framboise-voile), transparent 42%),
+    radial-gradient(circle at 92% 2%, var(--lavande-voile), transparent 38%),
+    radial-gradient(circle at 78% 98%, var(--pistache-voile), transparent 40%),
+    var(--creme);
+  background-attachment: fixed;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+
+h1, h2, h3, h4 { line-height: 1.25; margin: 0 0 0.5rem; letter-spacing: -0.01em; }
+h1 { font-size: clamp(1.6rem, 4vw, 2.3rem); }
+h2 { font-size: clamp(1.2rem, 2.6vw, 1.5rem); }
+h3 { font-size: 1.05rem; }
+p { margin: 0 0 0.7rem; }
+a { color: var(--framboise); }
+
+.page { max-width: 1120px; margin: 0 auto; padding: 24px 16px 64px; }
+.page--etroite { max-width: 720px; }
+
+.muted { color: var(--doux); }
+.small { font-size: 0.85rem; }
+.tiny { font-size: 0.76rem; }
+.center { text-align: center; }
+.hidden { display: none !important; }
+.stack > * + * { margin-top: 0.75rem; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.row--end { justify-content: flex-end; }
+.row--between { justify-content: space-between; }
+.row--center { justify-content: center; }
+.spacer { flex: 1 1 auto; }
+
+/* ---------- 3. Das Macaron ---------- */
+.macaron {
+  --taille: 34px;
+  --m-base: var(--framboise);
+  --m-clair: var(--framboise-clair);
+  --m-ganache: #ffe9f0;
+  position: relative;
+  display: inline-block;
+  flex: none;
+  width: var(--taille);
+  height: calc(var(--taille) * 0.78);
+  /* Platz fuer die seitlich ueberstehende Fuellung */
+  margin-inline: calc(var(--taille) * 0.09);
+  vertical-align: middle;
+}
+.macaron i {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: block;
+}
+.macaron .coque-haut {
+  top: 0;
+  height: 42%;
+  border-radius: 50% 50% 18% 18% / 90% 90% 20% 20%;
+  background: linear-gradient(165deg, var(--m-clair), var(--m-base));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+.macaron .ganache {
+  top: 38%;
+  height: 26%;
+  left: -8%;
+  right: -8%;
+  border-radius: 999px;
+  background: var(--m-ganache);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+.macaron .coque-bas {
+  bottom: 0;
+  height: 42%;
+  border-radius: 18% 18% 50% 50% / 20% 20% 90% 90%;
+  background: linear-gradient(15deg, var(--m-base), var(--m-clair));
+  box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
+}
+
+.macaron[data-flavor="framboise"] { --m-base: #de4f70; --m-clair: #f6a0b4; --m-ganache: #ffe7ee; }
+.macaron[data-flavor="pistache"]  { --m-base: #6cb175; --m-clair: #a9d9ad; --m-ganache: #eefaea; }
+.macaron[data-flavor="lavande"]   { --m-base: #9b7fdb; --m-clair: #c5b1f0; --m-ganache: #f1ecff; }
+.macaron[data-flavor="citron"]    { --m-base: #e6b23c; --m-clair: #f7d783; --m-ganache: #fff5dc; }
+.macaron[data-flavor="myrtille"]  { --m-base: #5f77dd; --m-clair: #a3b2f2; --m-ganache: #e9edff; }
+.macaron[data-flavor="chocolat"]  { --m-base: #8a5a45; --m-clair: #bd8b72; --m-ganache: #f6e6da; }
+.macaron[data-flavor="vanille"]   { --m-base: #d9c39a; --m-clair: #f0e3c6; --m-ganache: #fffaf0; }
+
+.macaron--xs { --taille: 18px; }
+.macaron--s { --taille: 26px; }
+.macaron--l { --taille: 54px; }
+.macaron--xl { --taille: 84px; }
+
+/* Zustaende im Fortschrittsbalken */
+.macaron--todo { filter: saturate(0.12) opacity(0.5); }
+.macaron--rate { filter: saturate(0.3) opacity(0.85); }
+.macaron--rate::after {
+  content: "";
+  position: absolute;
+  left: 46%;
+  top: 4%;
+  width: 8%;
+  height: 92%;
+  background: rgba(0, 0, 0, 0.28);
+  transform: rotate(12deg);
+  border-radius: 2px;
+}
+.macaron--actif { animation: macaron-pouls 1.5s ease-in-out infinite; }
+@keyframes macaron-pouls {
+  0%, 100% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-3px) scale(1.06); }
+}
+
+/* ---------- 4. Karten ---------- */
+.card {
+  position: relative;
+  background: var(--coque);
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  padding: 20px;
+  box-shadow: var(--ombre);
+}
+.card + .card { margin-top: 16px; }
+.card--ganache { padding-top: 26px; overflow: hidden; }
+/* Die "Fuellung": ein farbiger Streifen am oberen Kartenrand */
+.card--ganache::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 7px;
+  background: linear-gradient(90deg, var(--framboise), var(--citron), var(--pistache), var(--myrtille), var(--lavande));
+  opacity: 0.9;
+}
+.card__title { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+
+/* ---------- 5. Buttons ---------- */
+.btn {
+  appearance: none;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  padding: 0.6rem 1.15rem;
+  font: inherit;
+  font-weight: 650;
+  font-size: 0.95rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  color: #fff;
+  background: linear-gradient(135deg, var(--framboise-clair), var(--framboise));
+  box-shadow: 0 6px 16px var(--framboise-voile);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
+  text-decoration: none;
+  line-height: 1.3;
+}
+.btn:hover { transform: translateY(-1px); filter: brightness(1.04); box-shadow: var(--ombre); }
+.btn:active { transform: translateY(0); filter: brightness(0.97); }
+.btn:focus-visible { outline: 3px solid var(--lavande); outline-offset: 2px; }
+.btn[disabled] { opacity: 0.5; cursor: not-allowed; transform: none; filter: none; }
+
+.btn--doux {
+  background: var(--coque-2);
+  color: var(--encre);
+  border-color: var(--bord);
+  box-shadow: none;
+}
+.btn--doux:hover { background: var(--creme-2); }
+.btn--pistache { background: linear-gradient(135deg, #9ad3a0, var(--pistache)); box-shadow: 0 6px 16px var(--pistache-voile); }
+.btn--lavande { background: linear-gradient(135deg, #c2adf2, var(--lavande)); box-shadow: 0 6px 16px var(--lavande-voile); }
+.btn--danger { background: none; color: var(--framboise); border-color: var(--bord); box-shadow: none; }
+.btn--danger:hover { background: var(--framboise-voile); }
+.btn--mini { padding: 0.28rem 0.7rem; font-size: 0.8rem; }
+.btn--bloc { width: 100%; }
+
+.icon-btn {
+  appearance: none;
+  border: 1px solid var(--bord);
+  background: var(--coque-2);
+  color: var(--doux);
+  border-radius: 999px;
+  width: 34px;
+  height: 34px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.95rem;
+  padding: 0;
+  flex: none;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+.icon-btn:hover { background: var(--creme-2); color: var(--encre); }
+.icon-btn:focus-visible { outline: 3px solid var(--lavande); outline-offset: 2px; }
+
+/* ---------- 6. Formularfelder ---------- */
+label { display: block; font-size: 0.88rem; font-weight: 650; margin-bottom: 0.3rem; }
+.field { margin-bottom: 0.9rem; }
+.field > .hint { display: block; margin-top: 0.25rem; font-size: 0.78rem; color: var(--doux); }
+
+input[type="text"],
+input[type="number"],
+input[type="search"],
+textarea,
+select {
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--rayon-s);
+  border: 1.5px solid var(--bord);
+  background: var(--champ-bg);
+  color: var(--encre);
+  font: inherit;
+  font-size: 0.95rem;
+}
+textarea { min-height: 72px; resize: vertical; }
+input:focus, textarea:focus, select:focus {
+  outline: none;
+  border-color: var(--framboise);
+  box-shadow: 0 0 0 3px var(--framboise-voile);
+}
+input[type="file"] {
+  width: 100%;
+  font: inherit;
+  font-size: 0.9rem;
+  color: var(--doux);
+}
+input[type="range"] { width: 100%; accent-color: var(--framboise); }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--framboise); width: 1.05rem; height: 1.05rem; }
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-weight: 500;
+  font-size: 0.92rem;
+  margin: 0 0 0.55rem;
+  cursor: pointer;
+}
+.check input { margin-top: 0.2rem; flex: none; }
+
+/* Schmales Zahlenfeld, das mitten im Fliesstext steht */
+input.nombre-mini {
+  display: inline-block;
+  width: 5rem;
+  padding: 0.3rem 0.45rem;
+}
+
+.grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0 16px; }
+
+/* ---------- 7. Pastilles / Badges ---------- */
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.16rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 650;
+  background: var(--coque-2);
+  border: 1px solid var(--bord);
+  color: var(--doux);
+  white-space: nowrap;
+}
+.pill--framboise { background: var(--framboise-voile); color: var(--framboise); border-color: transparent; }
+.pill--pistache { background: var(--pistache-voile); color: var(--pistache); border-color: transparent; }
+.pill--lavande { background: var(--lavande-voile); color: var(--lavande); border-color: transparent; }
+.pill--citron { background: var(--citron-voile); color: var(--citron); border-color: transparent; }
+.pill--myrtille { background: var(--myrtille-voile); color: var(--myrtille); border-color: transparent; }
+
+/* ---------- 8. Fortschritt: eine Reihe Macarons ---------- */
+.macaron-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 4px 0 8px;
+}
+
+/* ---------- 9. Modal ---------- */
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(45, 25, 32, 0.55);
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 50;
+}
+.modal {
+  background: var(--coque);
+  border: 1px solid var(--bord);
+  border-radius: var(--rayon);
+  box-shadow: var(--ombre-forte);
+  width: min(720px, 100%);
+  max-height: min(88vh, 900px);
+  overflow: auto;
+  padding: 22px;
+}
+.modal--large { width: min(920px, 100%); }
+
+/* ---------- 10. Toast ---------- */
+.toast-zone {
+  position: fixed;
+  left: 50%;
+  bottom: 22px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 80;
+  pointer-events: none;
+  width: min(420px, calc(100vw - 32px));
+}
+.toast {
+  background: var(--encre);
+  color: var(--creme);
+  border-radius: 999px;
+  padding: 0.6rem 1.1rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  box-shadow: var(--ombre-forte);
+  text-align: center;
+  animation: toast-in 0.25s ease;
+}
+.toast--erreur { background: var(--framboise); color: #fff; }
+.toast--ok { background: var(--pistache); color: #12250f; }
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ---------- 11. Kopfzeile ---------- */
+.topbar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.brand { display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+.brand h1 { margin: 0; }
+.brand p { margin: 0; }
+
+.theme-toggle {
+  appearance: none;
+  border: 1px solid var(--bord);
+  background: var(--coque);
+  color: var(--encre);
+  border-radius: 999px;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+.theme-toggle:hover { background: var(--coque-2); }
+
+.app-footer {
+  text-align: center;
+  color: var(--doux);
+  font-size: 0.8rem;
+  padding: 26px 16px 8px;
+}
+
+/* ---------- 12. Bewegung sparsam ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

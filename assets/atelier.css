@@ -1,0 +1,182 @@
+/* ==========================================================================
+   L'Atelier des Macarons – Oberflaeche des Lehrer-Editors
+   ========================================================================== */
+
+.atelier {
+  display: grid;
+  grid-template-columns: 300px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 20px 16px 60px;
+}
+@media (max-width: 900px) {
+  .atelier { grid-template-columns: minmax(0, 1fr); }
+}
+
+.sidebar { position: sticky; top: 16px; }
+@media (max-width: 900px) {
+  .sidebar { position: static; }
+}
+
+.biblio { display: grid; gap: 8px; max-height: 46vh; overflow: auto; margin-top: 10px; }
+.biblio__item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 0.7rem;
+  border-radius: 14px;
+  border: 1.5px solid var(--bord);
+  background: var(--coque-2);
+  color: var(--encre);
+  font: inherit;
+  cursor: pointer;
+}
+.biblio__item:hover { border-color: var(--framboise); }
+.biblio__item[aria-current="true"] {
+  border-color: var(--framboise);
+  background: var(--framboise-voile);
+}
+.biblio__titre { font-weight: 650; font-size: 0.92rem; display: block; }
+.biblio__meta { font-size: 0.74rem; color: var(--doux); }
+
+.tabs { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; }
+.tab {
+  appearance: none;
+  border: 1.5px solid var(--bord);
+  background: var(--coque);
+  color: var(--doux);
+  border-radius: 999px;
+  padding: 0.45rem 1rem;
+  font: inherit;
+  font-weight: 650;
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+.tab[aria-selected="true"] {
+  background: var(--framboise);
+  border-color: var(--framboise);
+  color: #fff;
+  box-shadow: 0 6px 16px var(--framboise-voile);
+}
+
+/* ---------- Fragenkarten ---------- */
+
+.q-card {
+  border: 1.5px solid var(--bord);
+  border-radius: 18px;
+  background: var(--coque);
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+.q-card--probleme { border-color: var(--citron); }
+.q-card.glisse { opacity: 0.45; }
+.q-card.cible { outline: 2px dashed var(--framboise); outline-offset: 2px; }
+
+.q-card__head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0.6rem 0.75rem;
+  background: var(--coque-2);
+}
+.q-card__titre {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-weight: 650;
+  font-size: 0.92rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.q-card__body { padding: 0.9rem 0.95rem 1rem; border-top: 1px solid var(--bord); }
+
+.handle {
+  cursor: grab;
+  user-select: none;
+  color: var(--doux);
+  font-size: 1.1rem;
+  padding: 0 0.15rem;
+  line-height: 1;
+  flex: none;
+}
+.handle:active { cursor: grabbing; }
+
+.num-rond {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--coque);
+  border: 1.5px solid var(--bord);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--doux);
+}
+
+/* Antwortoptionen im Editor */
+.opt-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.4rem;
+}
+.opt-row input[type="radio"] { flex: none; }
+.opt-row input[type="text"] { flex: 1 1 auto; }
+
+.avertissement {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 12px;
+  background: var(--citron-voile);
+  font-size: 0.85rem;
+  margin-top: 0.6rem;
+}
+
+.recette {
+  background: var(--coque-2);
+  border: 1px dashed var(--bord);
+  border-radius: 16px;
+  padding: 0.85rem 1rem;
+  font-size: 0.92rem;
+}
+.recette b { color: var(--framboise); }
+
+.json-brut {
+  width: 100%;
+  min-height: 220px;
+  font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.78rem;
+  white-space: pre;
+  overflow: auto;
+}
+
+.etapes { counter-reset: etape; list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.etapes li {
+  counter-increment: etape;
+  display: flex;
+  gap: 0.7rem;
+  align-items: flex-start;
+  font-size: 0.92rem;
+}
+.etapes li::before {
+  content: counter(etape);
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  background: var(--framboise);
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
