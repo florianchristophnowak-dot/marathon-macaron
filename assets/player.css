@@ -324,10 +324,30 @@
   justify-content: center;
 }
 .classement__texte { flex: 1 1 auto; min-width: 0; }
-.classement__fleches { display: flex; gap: 4px; flex: none; }
-.classement__fleches .icon-btn { width: 30px; height: 30px; }
+.classement__fleches { display: flex; gap: 6px; flex: none; }
+.classement__fleches .icon-btn {
+  width: 34px;
+  height: 34px;
+  background: var(--coque);
+  border-color: var(--framboise);
+  color: var(--framboise);
+  font-size: 1rem;
+}
+.classement__fleches .icon-btn:hover { background: var(--framboise-voile); }
 
-@media (max-width: 480px) {
-  .appariement { grid-template-columns: 1fr; }
-  .appariement__col + .appariement__col { border-top: 1px dashed var(--bord); padding-top: 10px; }
+@media (max-width: 520px) {
+  .appariement { gap: 7px; }
+  .lien { padding: .55rem .5rem; font-size: .85rem; gap: .4rem; }
+  .lien__puce { width: 21px; height: 21px; font-size: .72rem; }
+  /* Viele kurze Fragen ergeben sonst drei Reihen Macarons über der Frage. */
+  .macaron-bar .macaron { --taille: 20px; }
+}
+
+/* Finger ODER schmales Fenster: alles Bedienbare bekommt mehr Fläche. */
+@media (pointer: coarse), (max-width: 860px) {
+  .option { padding: .8rem .9rem; }
+  .lien { padding: .75rem .7rem; }
+  .classement__item { padding: .7rem; }
+  .classement__fleches .icon-btn { width: 42px; height: 42px; font-size: 1.1rem; }
+  .gap-input { padding: .35rem .5rem; }
 }

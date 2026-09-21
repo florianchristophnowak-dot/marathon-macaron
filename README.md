@@ -25,6 +25,13 @@ lädt sie in die Schüler-App. Mehr braucht es nicht.
 
 Getestet mit aktuellen Versionen von Firefox, Chrome, Edge und Safari.
 
+**Tablets und Smartphones:** Die Schüler-App ist für den Finger gebaut und auf
+360 bis 1024 Pixel Breite geprüft (kleines Android-Handy, iPhone SE, iPhone 14,
+iPad und iPad Pro hochkant). Nichts läuft seitlich aus dem Bild, Bedienelemente
+werden auf Touch-Geräten automatisch größer, und alles kommt ohne Ziehen aus:
+Zuordnungen entstehen durch Antippen (links, dann rechts), die Reihenfolge wird
+mit Pfeiltasten sortiert. Ziehen mit der Maus geht zusätzlich.
+
 ---
 
 ## Zwei Spielarten, dieselben Fragen
