@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Le Marathon des Macarons – Quiz de français</title>
+  <title>Marathon Macaron – Quiz de français</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='23' rx='27' ry='16' fill='%23f6a0b4'/%3E%3Crect x='3' y='27' width='58' height='12' rx='6' fill='%23ffe7ee'/%3E%3Cellipse cx='32' cy='43' rx='27' ry='16' fill='%23de4f70'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="assets/macaron.css">
   <link rel="stylesheet" href="assets/player.css">
+  <link rel="stylesheet" href="assets/escape.css">
   <style>
     .dropzone {
       border: 2px dashed var(--bord);
@@ -21,6 +22,13 @@
     .resume { display: grid; gap: 6px; margin: 0 0 1rem; padding: 0; list-style: none; }
     .resume li { display: flex; gap: .5rem; align-items: baseline; font-size: .92rem; }
     .resume b { font-weight: 700; }
+    .intro-histoire {
+      padding: .8rem 1rem;
+      border-radius: 16px;
+      background: var(--lavande-voile);
+      font-size: .95rem;
+      white-space: pre-wrap;
+    }
     .nom-actuel { font-size: 1.5rem; font-weight: 800; color: var(--framboise); }
     .reglages { border-top: 1px solid var(--bord); margin-top: 1rem; padding-top: 1rem; }
     .reglages fieldset { border: none; padding: 0; margin: 0 0 .8rem; }
@@ -35,7 +43,7 @@
           <i class="coque-haut"></i><i class="ganache"></i><i class="coque-bas"></i>
         </span>
         <div>
-          <h1>Le Marathon des Macarons</h1>
+          <h1>Marathon Macaron</h1>
           <p class="muted small" id="sousTitre">Quiz de français – à toi de jouer !</p>
         </div>
       </div>
@@ -62,6 +70,8 @@
       <h2 id="titreQuiz">Quiz</h2>
       <p class="muted" id="sousTitreQuiz"></p>
 
+      <p class="intro-histoire hidden" id="introQuiz"></p>
+
       <ul class="resume" id="resumeQuiz"></ul>
 
       <div class="card" style="box-shadow:none">
@@ -80,13 +90,13 @@
         <p class="muted small">Ton professeur t'autorise à choisir toi-même.</p>
 
         <fieldset>
-          <legend>Ordre des questions</legend>
+          <legend id="legendeOrdre">Ordre des questions</legend>
           <label class="check"><input type="radio" name="ordre" value="sequential"><span>Dans l'ordre du quiz</span></label>
           <label class="check"><input type="radio" name="ordre" value="random"><span>Au hasard 🎲</span></label>
         </fieldset>
 
         <fieldset>
-          <legend>Nombre de questions</legend>
+          <legend id="legendeNombre">Nombre de questions</legend>
           <label class="check"><input type="radio" name="nombre" value="all"><span>Toutes les questions (<span id="totalQuestions">0</span>)</span></label>
           <label class="check">
             <input type="radio" name="nombre" value="fixed">
@@ -120,12 +130,14 @@
     </section>
 
     <footer class="app-footer">
-      Le Marathon des Macarons · quiz de français hors ligne 🇫🇷
+      Marathon Macaron · quiz de français hors ligne 🇫🇷
     </footer>
   </div>
 
   <script src="assets/core.js"></script>
+  <script src="assets/answers.js"></script>
   <script src="assets/player.js"></script>
+  <script src="assets/escape.js"></script>
   <script src="assets/demo.js"></script>
   <script src="assets/eleve.js"></script>
 </body>

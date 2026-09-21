@@ -13,7 +13,9 @@
     mcq: 'Multiple Choice',
     vf: 'vrai / faux',
     text: 'Freitext',
-    gap: 'Lückentext'
+    gap: 'Lückentext',
+    matching: 'Zuordnung',
+    order: 'Reihenfolge'
   };
 
   var PROBLEME = {
@@ -23,7 +25,12 @@
     'empty-correct-option': 'Die als richtig markierte Option ist leer.',
     'no-answers': 'Es ist keine akzeptierte Antwort hinterlegt.',
     'no-gap': 'Im Satz fehlt ___ – so entsteht keine Lücke.',
-    'empty-gap': 'Für mindestens eine Lücke fehlt die Lösung.'
+    'empty-gap': 'Für mindestens eine Lücke fehlt die Lösung.',
+    'few-pairs': 'Es braucht mindestens zwei vollständige Paare.',
+    'few-items': 'Es braucht mindestens zwei Elemente.',
+    'no-code': 'Der Station fehlt ihr Code-Fragment.',
+    'no-final-code': 'Der eigene Tresorcode ist leer.',
+    'no-prize': 'Im Tresor liegt noch kein Preis.'
   };
 
   var App = {
@@ -176,7 +183,7 @@
       });
 
       /* Reiter */
-      Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (tab) {
+      Array.prototype.forEach.call(document.querySelectorAll('.tab[data-tab]'), function (tab) {
         tab.addEventListener('click', function () {
           self.state.tab = tab.getAttribute('data-tab');
           self.rendreOnglets();
@@ -218,10 +225,45 @@
 
       /* Spielablauf */
       document.querySelector('[data-panel="ablauf"]').addEventListener('change', function (e) {
+        if (e.target.name === 'mode') { self.changerMode(e.target.value); return; }
         self.reglageModifie(e);
       });
       document.querySelector('[data-panel="ablauf"]').addEventListener('input', function (e) {
         if (e.target.type === 'number') self.reglageModifie(e);
+      });
+
+      /* Tresor-Einstellungen */
+      document.getElementById('blocEscape').addEventListener('change', function (e) { self.escapeModifie(e); });
+      document.getElementById('blocEscape').addEventListener('input', function (e) {
+        if (e.target.tagName === 'TEXTAREA' || e.target.type === 'text' || e.target.type === 'number') {
+          self.escapeModifie(e);
+        }
+      });
+      document.getElementById('btnCodes').addEventListener('click', function () {
+        var quiz = self.courant();
+        if (!quiz || !quiz.questions.length) {
+          M.toast('Erst Fragen anlegen, dann Codes verteilen.', 'erreur');
+          return;
+        }
+        M.generateCodes(quiz);
+        self.touche();
+        self.majApercuCode();
+        self.rendreFragen();
+        M.toast('Codes verteilt 🔐', 'ok');
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-prix]'), function (onglet) {
+        onglet.addEventListener('click', function () {
+          var quiz = self.courant();
+          if (!quiz) return;
+          quiz.escape.prize.type = onglet.getAttribute('data-prix');
+          self.touche();
+          self.rendrePrix();
+        });
+      });
+      document.getElementById('prixImage').addEventListener('change', function (e) {
+        var fichier = e.target.files && e.target.files[0];
+        e.target.value = '';
+        if (fichier) self.chargerImage(fichier);
       });
 
       /* Export / Vorschau */
@@ -240,6 +282,7 @@
       document.getElementById('sousTitre').value = quiz ? quiz.subtitle : '';
       this.rendreBiblio();
       this.rendreOnglets();
+      this.rendreEscape();
     },
 
     rendreBiblio: function () {
@@ -278,7 +321,7 @@
 
     rendreOnglets: function () {
       var self = this;
-      Array.prototype.forEach.call(document.querySelectorAll('.tab'), function (tab) {
+      Array.prototype.forEach.call(document.querySelectorAll('.tab[data-tab]'), function (tab) {
         tab.setAttribute('aria-selected', String(tab.getAttribute('data-tab') === self.state.tab));
       });
       Array.prototype.forEach.call(document.querySelectorAll('[data-panel]'), function (panel) {
@@ -363,6 +406,8 @@
       if (q.type === 'mcq') html += this.champsMcq(q);
       else if (q.type === 'vf') html += this.champsVf(q);
       else if (q.type === 'text') html += this.champsText(q);
+      else if (q.type === 'matching') html += this.champsMatching(q);
+      else if (q.type === 'order') html += this.champsOrder(q);
       else html += this.champsGap(q);
 
       html +=
@@ -376,6 +421,8 @@
             '<input type="text" name="explanation" value="' + M.esc(q.explanation) + '" placeholder="Erscheint nach dem Antworten">' +
           '</div>' +
         '</div>';
+
+      if (this.courant().mode === 'escape') html += this.champsStation(q, index);
 
       html += '<div data-avert>' + this.texteAvertissement(q) + '</div>';
       return html;
@@ -431,6 +478,63 @@
           (q.ignoreAccents ? ' checked' : '') + '><span>Akzente ignorieren (café = cafe)</span></label>';
     },
 
+    champsMatching: function (q) {
+      var lignes = q.pairs.map(function (paire, i) {
+        return '<div class="opt-row">' +
+          '<span class="num-rond">' + (i + 1) + '</span>' +
+          '<input type="text" name="pairLeft" data-pair="' + i + '" value="' + M.esc(paire.left) + '" placeholder="links">' +
+          '<span aria-hidden="true">→</span>' +
+          '<input type="text" name="pairRight" data-pair="' + i + '" value="' + M.esc(paire.right) + '" placeholder="rechts">' +
+          (q.pairs.length > 2
+            ? '<button type="button" class="icon-btn" data-act="pair-del" data-pair="' + i + '" title="Paar entfernen">✕</button>'
+            : '') +
+        '</div>';
+      }).join('');
+
+      return '<div class="field">' +
+        '<label>Paare</label>' + lignes +
+        (q.pairs.length < 8
+          ? '<button type="button" class="btn btn--doux btn--mini" data-act="pair-add">+ Paar</button>'
+          : '') +
+        '<span class="hint">Im Spiel wird die rechte Spalte gemischt angezeigt.</span>' +
+        '</div>';
+    },
+
+    champsOrder: function (q) {
+      var lignes = q.items.map(function (item, i) {
+        return '<div class="opt-row">' +
+          '<span class="num-rond">' + (i + 1) + '</span>' +
+          '<input type="text" name="item" data-item="' + i + '" value="' + M.esc(item) + '" placeholder="Element ' + (i + 1) + '">' +
+          (q.items.length > 2
+            ? '<button type="button" class="icon-btn" data-act="item-del" data-item="' + i + '" title="Entfernen">✕</button>'
+            : '') +
+        '</div>';
+      }).join('');
+
+      return '<div class="field">' +
+        '<label>Elemente in der richtigen Reihenfolge</label>' + lignes +
+        (q.items.length < 8
+          ? '<button type="button" class="btn btn--doux btn--mini" data-act="item-add">+ Element</button>'
+          : '') +
+        '<span class="hint">Hier steht die Lösung – im Spiel werden die Elemente gemischt.</span>' +
+        '</div>';
+    },
+
+    /* Zusatzfelder, die nur das Escape-Spiel braucht. */
+    champsStation: function (q, index) {
+      return '<div class="field" style="border-top:1px dashed var(--bord);padding-top:.8rem">' +
+        '<label>Station ' + (index + 1) + ' im Tresor-Spiel</label>' +
+        '<div class="code-champ">' +
+          '<span class="small muted">Code-Fragment</span>' +
+          '<input type="text" name="code" value="' + M.esc(q.code) + '" placeholder="z. B. MA" maxlength="12">' +
+        '</div>' +
+        '<label class="check" style="margin-top:.5rem"><input type="checkbox" name="manualSolve"' +
+          (q.manualSolve ? ' checked' : '') +
+          '><span>Freigabe durch die Lehrkraft (Sprechen, Hören, Aufgaben am Tisch)</span></label>' +
+        '<span class="hint">Bei Freigabe durch die Lehrkraft gibt es keine Eingabe – ihr tippt vor Ort das Fragment ein.</span>' +
+        '</div>';
+    },
+
     champsGapSolutions: function (q) {
       var nombre = M.countGaps(q.gapText);
       if (!nombre) return '<span class="hint">Sobald der Satz ein ___ enthält, erscheint hier ein Lösungsfeld.</span>';
@@ -473,7 +577,7 @@
         M.toast('Mehr als ' + M.MAX_QUESTIONS + ' Fragen sind nicht vorgesehen.', 'erreur');
         return;
       }
-      var question = M.defaultQuestion(type, quiz.questions.length);
+      var question = M.newQuestion(type, quiz.questions.length);
       question.ignoreAccents = quiz.settings.ignoreAccents;
       if (type === 'gap') question.gapText = '';
       quiz.questions.push(question);
@@ -513,6 +617,17 @@
       } else if (nom === 'gap') {
         var g = parseInt(cible.getAttribute('data-gap'), 10);
         if (!isNaN(g)) q.gaps[g] = cible.value;
+      } else if (nom === 'pairLeft' || nom === 'pairRight') {
+        var pi = parseInt(cible.getAttribute('data-pair'), 10);
+        if (!isNaN(pi) && q.pairs[pi]) {
+          q.pairs[pi][nom === 'pairLeft' ? 'left' : 'right'] = cible.value;
+        }
+      } else if (nom === 'item') {
+        var ii = parseInt(cible.getAttribute('data-item'), 10);
+        if (!isNaN(ii)) q.items[ii] = cible.value;
+      } else if (nom === 'code') {
+        q.code = M.normalizeCode(cible.value);
+        this.majApercuCode();
       } else if (nom === 'gapText') {
         q.gapText = cible.value;
         var nombre = M.countGaps(q.gapText);
@@ -546,6 +661,7 @@
       }
       if (nom === 'vf') { q.correctVF = cible.value; this.touche(); return; }
       if (nom === 'ignoreAccents') { q.ignoreAccents = cible.checked; this.touche(); return; }
+      if (nom === 'manualSolve') { q.manualSolve = cible.checked; this.touche(); return; }
       if (cible.type === 'radio' && cible.hasAttribute('data-opt')) {
         q.correctIndex = parseInt(cible.getAttribute('data-opt'), 10) || 0;
         this.touche();
@@ -585,6 +701,16 @@
         this.deplacer(index, index + 1);
       } else if (act === 'opt-add') {
         if (q.options.length < 6) { q.options.push(''); this.touche(); this.rendreFragen(); }
+      } else if (act === 'pair-add') {
+        if (q.pairs.length < 8) { q.pairs.push({ left: '', right: '' }); this.touche(); this.rendreFragen(); }
+      } else if (act === 'pair-del') {
+        var pi = parseInt(bouton.getAttribute('data-pair'), 10);
+        if (q.pairs.length > 2 && !isNaN(pi)) { q.pairs.splice(pi, 1); this.touche(); this.rendreFragen(); }
+      } else if (act === 'item-add') {
+        if (q.items.length < 8) { q.items.push(''); this.touche(); this.rendreFragen(); }
+      } else if (act === 'item-del') {
+        var ii = parseInt(bouton.getAttribute('data-item'), 10);
+        if (q.items.length > 2 && !isNaN(ii)) { q.items.splice(ii, 1); this.touche(); this.rendreFragen(); }
       } else if (act === 'opt-del') {
         var i = parseInt(bouton.getAttribute('data-opt'), 10);
         if (q.options.length > 2 && !isNaN(i)) {
@@ -682,6 +808,7 @@
       });
       document.getElementById('hintPenalty').value = String(s.hintPenalty);
 
+      this.rendreEscape();
       this.majEtatsAblauf();
     },
 
@@ -766,6 +893,176 @@
 
       this.touche();
       this.majEtatsAblauf();
+      this.majApercuCode();
+    },
+
+    /* ---------- Spielart ---------- */
+
+    changerMode: function (mode) {
+      var quiz = this.courant();
+      if (!quiz) return;
+      quiz.mode = mode === 'escape' ? 'escape' : 'marathon';
+
+      /* Beim ersten Wechsel in den Tresor-Modus gleich Codes vorschlagen,
+         damit nicht sofort sechs Warnungen erscheinen. */
+      if (quiz.mode === 'escape' && quiz.questions.length &&
+          quiz.questions.every(function (q) { return !q.code; })) {
+        M.generateCodes(quiz);
+        M.toast('Code-Fragmente automatisch verteilt.', 'ok');
+      }
+
+      this.touche();
+      this.rendre();
+    },
+
+    estEscape: function () {
+      var quiz = this.courant();
+      return !!quiz && quiz.mode === 'escape';
+    },
+
+    /* ---------- Tresor ---------- */
+
+    rendreEscape: function () {
+      var quiz = this.courant();
+      if (!quiz) return;
+      var e = quiz.escape;
+      var escape = quiz.mode === 'escape';
+
+      document.getElementById('pillModus').textContent = escape ? '🔐 Coffre à macarons' : '🍬 Marathon';
+      document.getElementById('pillModus').className = 'pill ' + (escape ? 'pill--lavande' : 'pill--framboise');
+      document.getElementById('blocEscape').classList.toggle('hidden', !escape);
+      document.getElementById('reglesPoints').classList.toggle('hidden', escape);
+      document.getElementById('titreDeroulement').textContent = escape
+        ? 'Welche Stationen kommen ins Spiel?'
+        : 'Wie läuft das Quiz für die Klasse ab?';
+      document.getElementById('legendeOrdre').textContent = escape
+        ? 'Reihenfolge der Stationen'
+        : 'Reihenfolge der Fragen';
+      document.getElementById('legendeAnzahl').textContent = escape
+        ? 'Anzahl der Stationen'
+        : 'Anzahl der Fragen';
+
+      var panneau = document.querySelector('[data-panel="ablauf"]');
+      var radioMode = panneau.querySelector('input[name="mode"][value="' + quiz.mode + '"]');
+      if (radioMode) radioMode.checked = true;
+
+      if (!escape) return;
+
+      document.getElementById('escIntro').value = e.intro;
+      document.getElementById('escTime').value = String(e.timeLimitMin);
+      document.getElementById('escHint').value = String(e.hintCostMin);
+      document.getElementById('escLock').checked = e.lockOrder;
+      document.getElementById('escStyle').value = e.codeStyle;
+      document.getElementById('escFinal').value = e.finalCode;
+      var radio = document.querySelector('input[name="finalCodeMode"][value="' + e.finalCodeMode + '"]');
+      if (radio) radio.checked = true;
+      document.getElementById('escFinal').disabled = e.finalCodeMode !== 'manual';
+
+      this.rendrePrix();
+      this.majApercuCode();
+    },
+
+    majApercuCode: function () {
+      var champ = document.getElementById('apercuCode');
+      if (!champ) return;
+      var quiz = this.courant();
+      if (!quiz || quiz.mode !== 'escape') return;
+
+      var sansCode = quiz.questions.filter(function (q) { return !q.code; }).length;
+      var code = M.finalCode(quiz);
+      var texte;
+
+      if (quiz.escape.finalCodeMode === 'manual') {
+        texte = code
+          ? 'Die Klasse muss <b>' + M.esc(code) + '</b> eingeben. Sag den Code vorher an oder verteile ihn im Raum.'
+          : 'Es ist noch kein eigener Tresorcode eingetragen.';
+      } else if (!quiz.questions.length) {
+        texte = 'Sobald Stationen angelegt sind, steht hier der Tresorcode.';
+      } else if (sansCode) {
+        texte = 'Noch ' + sansCode + ' Station(en) ohne Fragment – der Code ist erst dann vollständig.';
+      } else if (quiz.settings.countMode === 'all') {
+        texte = 'Der Tresorcode lautet <b>' + M.esc(code) + '</b>.';
+      } else {
+        /* Bei einer Teilmenge steht der Code erst im Durchgang fest. */
+        texte = 'Weil nicht alle Stationen gespielt werden, entsteht der Code <b>bei jedem Durchgang neu</b> ' +
+          'aus den gefundenen Fragmenten – von links nach rechts abgelesen.' +
+          '<br><span class="muted small">Alle Fragmente in Reihenfolge: ' + M.esc(code) + '</span>';
+      }
+      champ.innerHTML = texte;
+    },
+
+    rendrePrix: function () {
+      var quiz = this.courant();
+      if (!quiz) return;
+      var prix = quiz.escape.prize;
+
+      Array.prototype.forEach.call(document.querySelectorAll('[data-prix]'), function (onglet) {
+        onglet.setAttribute('aria-selected', String(onglet.getAttribute('data-prix') === prix.type));
+      });
+      Array.prototype.forEach.call(document.querySelectorAll('[data-prixbloc]'), function (bloc) {
+        bloc.classList.toggle('hidden', bloc.getAttribute('data-prixbloc') !== prix.type);
+      });
+
+      document.getElementById('prixText').value = prix.text;
+      document.getElementById('prixPhrase').value = prix.phrase;
+      document.getElementById('prixAlt').value = prix.imageAlt;
+      document.getElementById('prixApercu').innerHTML = prix.imageData
+        ? '<img src="' + M.esc(prix.imageData) + '" alt="" style="max-width:100%;border-radius:12px">' +
+          '<button type="button" class="btn btn--danger btn--mini" data-act-prix="del" style="margin-top:.4rem">Bild entfernen</button>'
+        : '<p class="muted small">Noch kein Bild gewählt.</p>';
+
+      var suppr = document.querySelector('[data-act-prix="del"]');
+      if (suppr) {
+        var self = this;
+        suppr.addEventListener('click', function () {
+          quiz.escape.prize.imageData = '';
+          self.touche();
+          self.rendrePrix();
+        });
+      }
+    },
+
+    chargerImage: function (fichier) {
+      var self = this;
+      if (fichier.size > 1500000) {
+        M.toast('Das Bild ist größer als 1,5 MB – bitte ein kleineres wählen.', 'erreur');
+        return;
+      }
+      var lecteur = new FileReader();
+      lecteur.onload = function (event) {
+        var quiz = self.courant();
+        if (!quiz) return;
+        quiz.escape.prize.imageData = String(event.target.result);
+        quiz.escape.prize.type = 'image';
+        self.touche();
+        self.rendrePrix();
+        M.toast('Bild übernommen.', 'ok');
+      };
+      lecteur.onerror = function () { M.toast('Das Bild konnte nicht gelesen werden.', 'erreur'); };
+      lecteur.readAsDataURL(fichier);
+    },
+
+    escapeModifie: function (event) {
+      var quiz = this.courant();
+      if (!quiz) return;
+      var e = quiz.escape;
+      var cible = event.target;
+
+      if (cible.id === 'escIntro') e.intro = cible.value;
+      else if (cible.id === 'escTime') e.timeLimitMin = M.clamp(cible.value, 0, 180);
+      else if (cible.id === 'escHint') e.hintCostMin = M.clamp(cible.value, 0, 30);
+      else if (cible.id === 'escLock') e.lockOrder = cible.checked;
+      else if (cible.id === 'escStyle') e.codeStyle = cible.value;
+      else if (cible.id === 'escFinal') e.finalCode = M.normalizeCode(cible.value);
+      else if (cible.name === 'finalCodeMode') {
+        e.finalCodeMode = cible.value;
+        document.getElementById('escFinal').disabled = e.finalCodeMode !== 'manual';
+      } else if (cible.id === 'prixText') e.prize.text = cible.value;
+      else if (cible.id === 'prixPhrase') e.prize.phrase = cible.value;
+      else if (cible.id === 'prixAlt') e.prize.imageAlt = cible.value;
+
+      this.touche();
+      this.majApercuCode();
     },
 
     /* ---------- Teilen ---------- */
@@ -851,7 +1148,9 @@
       fond.innerHTML =
         '<div class="modal modal--large" role="dialog" aria-modal="true" aria-label="Vorschau">' +
           '<div class="row row--between" style="margin-bottom:.8rem">' +
-            '<div><strong>Vorschau</strong> <span class="muted small">– genau so spielt die Klasse.</span></div>' +
+            '<div><strong>Vorschau</strong> <span class="muted small">– genau so spielt die Klasse.' +
+              (quiz.mode === 'escape' ? ' Tresorcode: <b>' + M.esc(M.finalCode(quiz)) + '</b>' : '') +
+            '</span></div>' +
             '<button type="button" class="icon-btn" data-fermer title="Schließen">✕</button>' +
           '</div>' +
           '<div data-apercu></div>' +
@@ -867,7 +1166,7 @@
         if (event.key === 'Escape') fermer();
       }
       function lancer() {
-        self.player = M.createPlayer({
+        var reglages = {
           mount: fond.querySelector('[data-apercu]'),
           quiz: quiz,
           playerName: 'Madame la professeure',
@@ -875,7 +1174,10 @@
           quitLabel: 'Vorschau schließen',
           onReplay: function () { lancer(); },
           onQuit: fermer
-        });
+        };
+        self.player = quiz.mode === 'escape'
+          ? M.createEscape(reglages)
+          : M.createPlayer(reglages);
       }
 
       fond.addEventListener('click', function (event) {

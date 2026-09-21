@@ -118,18 +118,46 @@
       var titre = quiz.title || 'Quiz de français';
       document.getElementById('titreQuiz').textContent = titre;
       document.getElementById('sousTitreQuiz').textContent = quiz.subtitle || '';
-      document.title = titre + ' – Le Marathon des Macarons';
+      document.title = titre + ' – Marathon Macaron';
+      this.afficherModeEtIntro();
       this.afficherResume();
       this.afficherNom();
       this.preparerReglages();
       this.afficherRecord();
       this.ecran('preparer');
-      M.toast(quiz.questions.length + ' questions chargées 🍬', 'ok');
+      M.toast(quiz.questions.length + (this.estEscape() ? ' salles chargées 🔐' : ' questions chargées 🍬'), 'ok');
+    },
+
+    estEscape: function () {
+      return !!this.quiz && this.quiz.mode === 'escape';
+    },
+
+    /* Das Escape-Spiel spricht von „salles", der Marathon von „questions". */
+    afficherModeEtIntro: function () {
+      var escape = this.estEscape();
+      var intro = document.getElementById('introQuiz');
+      var texte = escape ? String(this.quiz.escape.intro || '').trim() : '';
+      intro.textContent = texte;
+      intro.classList.toggle('hidden', !texte);
+
+      document.getElementById('btnCommencer').textContent = escape
+        ? '🔐 Commencer l\u2019évasion'
+        : '🏁 Commencer le marathon';
+      document.getElementById('btnAbandonner').textContent = escape
+        ? 'Quitter l\u2019évasion'
+        : 'Quitter le quiz';
+      document.getElementById('legendeOrdre').textContent = escape
+        ? 'Ordre des salles'
+        : 'Ordre des questions';
+      document.getElementById('legendeNombre').textContent = escape
+        ? 'Nombre de salles'
+        : 'Nombre de questions';
     },
 
     /* ---------- Zusammenfassung der Lehrer-Einstellungen ---------- */
 
     texteNombre: function (settings, total) {
+      var mot = this.estEscape() ? 'salles' : 'questions';
       if (settings.countMode === 'fixed') {
         return Math.min(settings.count, total) + ' sur ' + total;
       }
@@ -139,18 +167,38 @@
         if (lo === hi) return lo + ' sur ' + total;
         return 'entre ' + lo + ' et ' + hi + ' (tirage au sort)';
       }
-      return 'toutes les ' + total + ' questions';
+      return 'toutes les ' + total + ' ' + mot;
     },
 
     afficherResume: function () {
       var s = this.quiz.settings;
       var total = this.quiz.questions.length;
-      var lignes = [
-        ['🍬', 'Questions', this.texteNombre(s, total)],
-        ['🔀', 'Ordre', s.order === 'random' ? 'au hasard' : 'dans l’ordre du quiz'],
-        ['💡', 'Indices', s.allowHints ? 'disponibles (−' + s.hintPenalty + ' pts)' : 'désactivés'],
-        ['⏱', 'Bonus de rapidité', s.speedBonus ? 'activé' : 'désactivé']
-      ];
+      var lignes;
+
+      if (this.estEscape()) {
+        var e = this.quiz.escape;
+        lignes = [
+          ['🚪', 'Salles', this.texteNombre(s, total)],
+          ['🔀', 'Ordre', e.lockOrder
+            ? 'les salles s’ouvrent une par une'
+            : 'tu choisis librement'],
+          ['⏱', 'Chrono', e.timeLimitMin ? e.timeLimitMin + ' minutes' : 'sans limite de temps'],
+          ['💡', 'Indices', e.hintCostMin
+            ? 'disponibles (−' + e.hintCostMin + ' min)'
+            : 'disponibles'],
+          ['🔐', 'Coffre', e.finalCodeMode === 'manual'
+            ? 'code annoncé par le professeur'
+            : 'assemble les fragments des salles']
+        ];
+      } else {
+        lignes = [
+          ['🍬', 'Questions', this.texteNombre(s, total)],
+          ['🔀', 'Ordre', s.order === 'random' ? 'au hasard' : 'dans l’ordre du quiz'],
+          ['💡', 'Indices', s.allowHints ? 'disponibles (−' + s.hintPenalty + ' pts)' : 'désactivés'],
+          ['⏱', 'Bonus de rapidité', s.speedBonus ? 'activé' : 'désactivé']
+        ];
+      }
+
       document.getElementById('resumeQuiz').innerHTML = lignes.map(function (l) {
         return '<li><span aria-hidden="true">' + l[0] + '</span><b>' + l[1] + ' :</b> ' + M.esc(l[2]) + '</li>';
       }).join('');
@@ -248,12 +296,12 @@
       document.getElementById('btnAbandonner').classList.remove('hidden');
       this.ecran('jeu');
 
-      this.player = M.createPlayer({
+      var reglages = {
         mount: document.getElementById('zoneJeu'),
         quiz: this.quiz,
         overrides: this.reglagesChoisis(),
         playerName: this.nom,
-        replayLabel: 'Rejouer',
+        replayLabel: this.estEscape() ? 'Recommencer' : 'Rejouer',
         quitLabel: 'Changer de réglages',
         onFinish: function (bilan) {
           document.getElementById('btnAbandonner').classList.add('hidden');
@@ -265,7 +313,9 @@
           self.afficherRecord();
           self.ecran('preparer');
         }
-      });
+      };
+
+      this.player = this.estEscape() ? M.createEscape(reglages) : M.createPlayer(reglages);
     },
 
     /* ---------- Bestleistung ---------- */
@@ -273,7 +323,27 @@
     enregistrerRecord: function (bilan) {
       var records = M.storage.get(CLE_RECORDS, {}) || {};
       var ancien = records[this.quiz.id];
-      if (!ancien || bilan.score > ancien.score) {
+
+      if (bilan.mode === 'escape') {
+        /* Nur geglückte Ausbrüche zählen – und schneller ist besser. */
+        if (!bilan.reussi) { this.afficherRecord(); return; }
+        if (!ancien || !ancien.escape || bilan.timeMs < ancien.timeMs) {
+          records[this.quiz.id] = {
+            escape: true,
+            timeMs: bilan.timeMs,
+            essais: bilan.essais,
+            indices: bilan.indices,
+            nom: this.nom,
+            date: new Date().toISOString()
+          };
+          M.storage.set(CLE_RECORDS, records);
+          if (ancien) M.toast('🏆 Nouveau record de vitesse !', 'ok');
+        }
+        this.afficherRecord();
+        return;
+      }
+
+      if (!ancien || ancien.escape || bilan.score > ancien.score) {
         records[this.quiz.id] = {
           score: bilan.score,
           nom: this.nom,
@@ -282,7 +352,7 @@
           date: new Date().toISOString()
         };
         M.storage.set(CLE_RECORDS, records);
-        if (ancien) M.toast('🏆 Nouveau record : ' + bilan.score + ' points !', 'ok');
+        if (ancien && !ancien.escape) M.toast('🏆 Nouveau record : ' + bilan.score + ' points !', 'ok');
       }
       this.afficherRecord();
     },
@@ -296,8 +366,17 @@
         return;
       }
       champ.classList.remove('hidden');
-      champ.textContent = '🏆 Meilleur score sur cet appareil : ' + record.score +
-        ' points (' + record.nom + ', ' + record.correct + '/' + record.total + ')';
+      if (record.escape) {
+        var total = Math.round(record.timeMs / 1000);
+        var min = Math.floor(total / 60);
+        var sec = total % 60;
+        champ.textContent = '🏆 Meilleur temps sur cet appareil : ' +
+          (min ? min + ' min ' + (sec < 10 ? '0' : '') + sec + ' s' : sec + ' s') +
+          ' (' + record.nom + ', ' + record.essais + ' essais)';
+      } else {
+        champ.textContent = '🏆 Meilleur score sur cet appareil : ' + record.score +
+          ' points (' + record.nom + ', ' + record.correct + '/' + record.total + ')';
+      }
     }
   };
 

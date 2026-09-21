@@ -224,9 +224,12 @@ console.log('Import');
   pruefe('Muell wird abgelehnt', M.normalizeQuiz({ foo: 1 }) === null);
   pruefe('null wird abgelehnt', M.normalizeQuiz(null) === null);
 
-  const echt = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'exemples', 'marathon-des-macarons.json'), 'utf8'));
+  const echt = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'exemples', 'marathon-macaron-demo.json'), 'utf8'));
   const beispiel = M.normalizeQuiz(echt);
-  pruefe('Beispiel-Quiz ist gueltig', beispiel && beispiel.questions.length === 12);
+  pruefe('Beispiel-Quiz ist gueltig', beispiel && beispiel.questions.length === echt.questions.length);
+  pruefe('Beispiel-Quiz nutzt alle Fragetypen',
+    M.TYPES.every(t => beispiel.questions.some(q => q.type === t)),
+    M.TYPES.filter(t => !beispiel.questions.some(q => q.type === t)).join(','));
   pruefe('Beispiel-Quiz ist vollstaendig', M.quizIssues(beispiel).length === 0,
     JSON.stringify(M.quizIssues(beispiel)));
 }
@@ -248,6 +251,129 @@ console.log('Warnhinweise');
   luecke.prompt = 'Setze ein';
   luecke.gapText = 'Ohne Luecke.';
   pruefe('fehlendes ___ wird bemaengelt', M.questionIssues(luecke).indexOf('no-gap') >= 0);
+}
+
+/* ---------- Zuordnung und Reihenfolge ---------- */
+console.log('Zuordnung & Reihenfolge');
+{
+  const m = M.defaultQuestion('matching', 0);
+  m.prompt = 'Associe';
+  m.pairs = [
+    { left: 'la plage', right: 'on nage' },
+    { left: 'le musée', right: 'on regarde' },
+    { left: 'la bibliothèque', right: 'on lit' }
+  ];
+  pruefe('Zuordnung richtig', M.checkAnswer(m, [0, 1, 2]).correct);
+  pruefe('Zuordnung vertauscht = falsch', !M.checkAnswer(m, [1, 0, 2]).correct);
+  const teil = M.checkAnswer(m, [0, 2, 1]);
+  pruefe('Zuordnung: Einzelrueckmeldung', teil.perPair[0] === true && teil.perPair[1] === false);
+  pruefe('Zuordnung: ohne Antwort falsch', !M.checkAnswer(m, []).correct);
+  pruefe('Zuordnung: Loesungstext', M.correctAnswerText(m).indexOf('la plage → on nage') === 0, M.correctAnswerText(m));
+  pruefe('Zuordnung: vollstaendig', M.questionIssues(m).length === 0, JSON.stringify(M.questionIssues(m)));
+
+  const leer = M.defaultQuestion('matching', 0);
+  leer.prompt = 'Associe';
+  leer.pairs = [{ left: 'a', right: 'b' }, { left: '', right: '' }];
+  pruefe('Zuordnung: zu wenige Paare wird bemaengelt', M.questionIssues(leer).indexOf('few-pairs') >= 0);
+
+  const o = M.defaultQuestion('order', 0);
+  o.prompt = 'Ordne';
+  o.items = ['Je me lève.', 'Je mange.', 'Je pars.'];
+  pruefe('Reihenfolge richtig', M.checkAnswer(o, [0, 1, 2]).correct);
+  pruefe('Reihenfolge falsch', !M.checkAnswer(o, [1, 0, 2]).correct);
+  pruefe('Reihenfolge unvollstaendig = falsch', !M.checkAnswer(o, [0, 1]).correct);
+  pruefe('Reihenfolge: Loesungstext', M.correctAnswerText(o) === 'Je me lève. → Je mange. → Je pars.');
+  const kurz = M.defaultQuestion('order', 0);
+  kurz.prompt = 'Ordne';
+  kurz.items = ['nur eins'];
+  pruefe('Reihenfolge: zu wenige Elemente wird bemaengelt', M.questionIssues(kurz).indexOf('few-items') >= 0);
+
+  /* Jede Musterloesung muss Text sein – nicht versehentlich ein Objekt. */
+  pruefe('Loesungstext ist immer eine Zeichenkette',
+    M.TYPES.every(t => typeof M.correctAnswerText(M.defaultQuestion(t, 0)) === 'string'),
+    M.TYPES.map(t => t + ':' + typeof M.correctAnswerText(M.defaultQuestion(t, 0))).join(' '));
+}
+
+/* ---------- Anzeige-Mischung ---------- */
+console.log('Mischung der Anzeige');
+{
+  const quiz = M.createQuiz('Test');
+  const m = M.defaultQuestion('matching', 0);
+  m.prompt = 'x';
+  m.pairs = [{ left: 'a', right: '1' }, { left: 'b', right: '2' }, { left: 'c', right: '3' }, { left: '', right: '' }];
+  const o = M.defaultQuestion('order', 1);
+  o.prompt = 'y';
+  o.items = ['a', 'b', 'c', 'd', ''];
+  quiz.questions.push(m, o);
+
+  const run = M.buildRun(quiz);
+  const mq = run.questions[0];
+  const oq = run.questions[1];
+  pruefe('leeres Paar faellt weg', mq.pairs.length === 3);
+  pruefe('rightOrder ist eine Permutation',
+    mq.rightOrder.slice().sort().join(',') === '0,1,2', mq.rightOrder.join(','));
+  pruefe('leeres Element faellt weg', oq.items.length === 4);
+  pruefe('itemOrder ist eine Permutation',
+    oq.itemOrder.slice().sort().join(',') === '0,1,2,3', oq.itemOrder.join(','));
+
+  let nieIdentisch = true;
+  for (let i = 0; i < 100; i++) {
+    const r = M.buildRun(quiz);
+    if (r.questions[1].itemOrder.join(',') === '0,1,2,3') nieIdentisch = false;
+  }
+  pruefe('Reihenfolge startet nie fertig sortiert', nieIdentisch);
+}
+
+/* ---------- Escape-Modus ---------- */
+console.log('Escape-Modus');
+{
+  const quiz = M.createQuiz('Coffre');
+  quiz.mode = 'escape';
+  for (let i = 0; i < 4; i++) {
+    const q = M.defaultQuestion('vf', i);
+    q.prompt = 'Frage ' + i;
+    quiz.questions.push(q);
+  }
+  pruefe('Escape-Standardwerte', quiz.escape.timeLimitMin === 20 && quiz.escape.lockOrder === true);
+  pruefe('fehlende Codes werden bemaengelt',
+    M.quizIssues(quiz).filter(p => p.code === 'no-code').length === 4);
+
+  M.generateCodes(quiz);
+  const codes = quiz.questions.map(q => q.code);
+  pruefe('Codes werden vergeben', codes.every(c => c && c.length > 0), codes.join(','));
+  pruefe('Codes sind verschieden', new Set(codes).size === 4, codes.join(','));
+  pruefe('Tresorcode = Fragmente', M.finalCode(quiz) === codes.join(''));
+
+  quiz.escape.finalCodeMode = 'manual';
+  quiz.escape.finalCode = 'ma ca-ron';
+  pruefe('fester Tresorcode wird vereinheitlicht', M.finalCode(quiz) === 'MACARON');
+  pruefe('Code-Vergleich ignoriert Schreibweise', M.normalizeCode(' ma-ca ron ') === 'MACARON');
+
+  quiz.escape.finalCodeMode = 'auto';
+  quiz.escape.prize.text = 'Bravo !';
+  pruefe('gesetzter Preis zaehlt', M.prizeIsSet(quiz.escape.prize));
+  pruefe('leerer Preis wird bemaengelt', !M.prizeIsSet(M.defaultEscape().prize));
+  pruefe('vollstaendiges Escape-Quiz ist sauber', M.quizIssues(quiz).length === 0,
+    JSON.stringify(M.quizIssues(quiz)));
+
+  /* Bei zufaelliger Auswahl muss der Code zum Durchgang passen. */
+  quiz.settings.countMode = 'fixed';
+  quiz.settings.count = 2;
+  quiz.settings.order = 'random';
+  const run = M.buildRun(quiz);
+  pruefe('Tresorcode folgt dem Durchgang',
+    M.finalCode(quiz, run) === run.questions.map(q => q.code).join(''));
+
+  /* Speichern und Laden darf nichts verlieren. */
+  const kopie = M.normalizeQuiz(JSON.parse(JSON.stringify(quiz)));
+  pruefe('Modus ueberlebt das Speichern', kopie.mode === 'escape');
+  pruefe('Escape-Block ueberlebt das Speichern',
+    kopie.escape.prize.text === 'Bravo !' && kopie.escape.timeLimitMin === 20);
+  pruefe('Codes ueberleben das Speichern', kopie.questions.map(q => q.code).join('') === codes.join(''));
+
+  const alt = M.normalizeQuiz({ title: 'Alt', questions: [{ type: 'vf', questionText: 'x' }] });
+  pruefe('alte Dateien sind weiterhin Marathon', alt.mode === 'marathon');
+  pruefe('alte Dateien bekommen Escape-Standardwerte', alt.escape.finalCodeMode === 'auto');
 }
 
 console.log('\n' + ok + ' Prüfungen bestanden, ' + fehler + ' fehlgeschlagen.');

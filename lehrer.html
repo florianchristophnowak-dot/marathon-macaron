@@ -7,6 +7,7 @@
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='23' rx='27' ry='16' fill='%23a9d9ad'/%3E%3Crect x='3' y='27' width='58' height='12' rx='6' fill='%23eefaea'/%3E%3Cellipse cx='32' cy='43' rx='27' ry='16' fill='%236cb175'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="assets/macaron.css">
   <link rel="stylesheet" href="assets/player.css">
+  <link rel="stylesheet" href="assets/escape.css">
   <link rel="stylesheet" href="assets/atelier.css">
 </head>
 <body>
@@ -58,7 +59,7 @@
           </div>
         </div>
         <div class="row row--between">
-          <span class="pill pill--pistache" id="etatQuiz">0 Fragen</span>
+          <span class="row" style="gap:6px"><span class="pill" id="pillModus">🍬 Marathon</span><span class="pill pill--pistache" id="etatQuiz">0 Fragen</span></span>
           <div class="row">
             <button type="button" class="btn btn--lavande" id="btnApercu">👀 Vorschau spielen</button>
             <button type="button" class="btn" id="btnExport">💾 Als JSON speichern</button>
@@ -81,6 +82,8 @@
               <button type="button" class="btn btn--mini" data-ajouter="vf">+ vrai / faux</button>
               <button type="button" class="btn btn--mini" data-ajouter="text">+ Freitext</button>
               <button type="button" class="btn btn--mini" data-ajouter="gap">+ Lückentext</button>
+              <button type="button" class="btn btn--mini" data-ajouter="matching">+ Zuordnung</button>
+              <button type="button" class="btn btn--mini" data-ajouter="order">+ Reihenfolge</button>
             </div>
             <div class="row">
               <button type="button" class="btn btn--doux btn--mini" id="btnAlleAuf">Alle aufklappen</button>
@@ -93,13 +96,33 @@
 
       <!-- Tab: Spielablauf -->
       <section data-panel="ablauf" class="hidden">
+        <div class="card card--ganache">
+          <h2>Spielart</h2>
+          <div class="modes">
+            <label class="mode-card">
+              <input type="radio" name="mode" value="marathon">
+              <span>
+                <b>🍬 Marathon Macaron</b>
+                Frage für Frage, Punkte für Tempo und richtige Serien. Am Ende Score und Korrektur.
+              </span>
+            </label>
+            <label class="mode-card">
+              <input type="radio" name="mode" value="escape">
+              <span>
+                <b>🔐 Le Coffre à Macarons</b>
+                Escape-Spiel: Jede gelöste Station gibt ein Code-Fragment frei, zusammen öffnen sie den Tresor.
+              </span>
+            </label>
+          </div>
+        </div>
+
         <div class="card">
-          <h2>Wie läuft das Quiz für die Klasse ab?</h2>
+          <h2 id="titreDeroulement">Wie läuft das Quiz für die Klasse ab?</h2>
           <p class="muted small">Diese Einstellungen werden in der JSON-Datei mitgespeichert.</p>
 
           <div class="grid-2">
             <fieldset style="border:none;padding:0;margin:0 0 1rem">
-              <legend style="font-weight:700;font-size:.92rem;margin-bottom:.4rem">Reihenfolge der Fragen</legend>
+              <legend style="font-weight:700;font-size:.92rem;margin-bottom:.4rem" id="legendeOrdre">Reihenfolge der Fragen</legend>
               <label class="check"><input type="radio" name="order" value="sequential"><span>In der Reihenfolge des Editors</span></label>
               <label class="check"><input type="radio" name="order" value="random"><span>Zufällig mischen 🎲</span></label>
 
@@ -111,7 +134,7 @@
             </fieldset>
 
             <fieldset style="border:none;padding:0;margin:0 0 1rem">
-              <legend style="font-weight:700;font-size:.92rem;margin-bottom:.4rem">Anzahl der Fragen</legend>
+              <legend style="font-weight:700;font-size:.92rem;margin-bottom:.4rem" id="legendeAnzahl">Anzahl der Fragen</legend>
               <label class="check"><input type="radio" name="countMode" value="all"><span>Alle Fragen (<span id="anzahlGesamt">0</span>)</span></label>
               <label class="check"><input type="radio" name="countMode" value="fixed">
                 <span>Genau <input type="number" class="nombre-mini" id="countFixed" min="1" value="10"> Fragen</span>
@@ -129,18 +152,88 @@
           <div class="grid-2">
             <div>
               <label class="check"><input type="checkbox" id="shuffleOptions"><span>Antwortoptionen mischen (Multiple Choice)</span></label>
+              <label class="check"><input type="checkbox" id="showExplanations"><span>Erklärungen im Feedback zeigen</span></label>
+              <label class="check"><input type="checkbox" id="ignoreAccents"><span>Akzente bei Freitext ignorieren (Standard für neue Fragen)</span></label>
+              <label class="check"><input type="checkbox" id="allowStudentSettings"><span>Schüler*innen dürfen Reihenfolge und Anzahl selbst wählen</span></label>
+            </div>
+            <div id="reglesPoints">
               <label class="check"><input type="checkbox" id="allowHints"><span>Indizes (Tipps) erlauben</span></label>
               <label class="check" style="padding-left:1.6rem">
                 <span>Punktabzug pro Tipp: <input type="number" class="nombre-mini" id="hintPenalty" min="0" max="200" value="30"></span>
               </label>
-              <label class="check"><input type="checkbox" id="showExplanations"><span>Erklärungen im Feedback zeigen</span></label>
-            </div>
-            <div>
               <label class="check"><input type="checkbox" id="speedBonus"><span>Tempo-Bonus (bis +50 Punkte)</span></label>
               <label class="check"><input type="checkbox" id="comboBonus"><span>Serien-Bonus (+40 ab 3 richtigen in Folge)</span></label>
-              <label class="check"><input type="checkbox" id="ignoreAccents"><span>Akzente bei Freitext ignorieren (Standard für neue Fragen)</span></label>
-              <label class="check"><input type="checkbox" id="allowStudentSettings"><span>Schüler*innen dürfen Reihenfolge und Anzahl selbst wählen</span></label>
             </div>
+          </div>
+        </div>
+
+        <!-- Nur im Escape-Modus -->
+        <div class="card card--ganache hidden" id="blocEscape">
+          <h2>🔐 Der Tresor</h2>
+
+          <div class="field">
+            <label for="escIntro">Einstiegstext für die Klasse (auf Französisch)</label>
+            <textarea id="escIntro" placeholder="Le chef pâtissier a enfermé sa recette secrète dans le coffre…"></textarea>
+            <span class="hint">Erscheint in der Schüler-App vor dem Start.</span>
+          </div>
+
+          <div class="grid-2">
+            <div class="field">
+              <label for="escTime">Zeitlimit in Minuten</label>
+              <input type="number" id="escTime" min="0" max="180">
+              <span class="hint">0 = ohne Zeitdruck.</span>
+            </div>
+            <div class="field">
+              <label for="escHint">Ein Tipp kostet (Minuten)</label>
+              <input type="number" id="escHint" min="0" max="30">
+              <span class="hint">Wird vom Countdown abgezogen.</span>
+            </div>
+          </div>
+
+          <label class="check"><input type="checkbox" id="escLock"><span>Stationen nacheinander freischalten (sonst frei wählbar)</span></label>
+
+          <h3 style="margin-top:1.2rem">Code-Fragmente</h3>
+          <p class="muted small">Jede Station gibt beim Lösen ihr Fragment frei. Die Fragmente trägst du bei den Fragen ein – oder lässt sie hier verteilen.</p>
+          <div class="row">
+            <select id="escStyle" style="max-width:220px">
+              <option value="letters">Buchstaben (A, B, C …)</option>
+              <option value="digits">Ziffern (0–9)</option>
+              <option value="colors">Farben (ROUGE, BLEU …)</option>
+              <option value="symbols">Symbole (★, ▲, ● …)</option>
+              <option value="macarons">Macaron-Sorten (FRAMBOISE …)</option>
+            </select>
+            <button type="button" class="btn btn--doux btn--mini" id="btnCodes">🎲 Codes automatisch vergeben</button>
+          </div>
+
+          <fieldset style="border:none;padding:0;margin:1rem 0 0">
+            <legend style="font-weight:700;font-size:.92rem;margin-bottom:.4rem">Tresorcode</legend>
+            <label class="check"><input type="radio" name="finalCodeMode" value="auto"><span>Fragmente der Reihe nach zusammensetzen</span></label>
+            <label class="check"><input type="radio" name="finalCodeMode" value="manual">
+              <span>Eigener Code: <input type="text" id="escFinal" style="max-width:200px;display:inline-block" placeholder="z. B. MACARON"></span>
+            </label>
+          </fieldset>
+          <div class="recette" id="apercuCode">…</div>
+
+          <h3 style="margin-top:1.2rem">Preis im Tresor</h3>
+          <div class="row" style="margin-bottom:.6rem">
+            <button type="button" class="tab" data-prix="text" aria-selected="true">Text</button>
+            <button type="button" class="tab" data-prix="phrase" aria-selected="false">Satz zum Vorlesen</button>
+            <button type="button" class="tab" data-prix="image" aria-selected="false">Bild</button>
+          </div>
+          <div class="field" data-prixbloc="text">
+            <label for="prixText">Nachricht im Tresor</label>
+            <input type="text" id="prixText" placeholder="z. B. Vous avez gagné 10 minutes de pause !">
+          </div>
+          <div class="field hidden" data-prixbloc="phrase">
+            <label for="prixPhrase">Satz, den die Klasse laut vorliest</label>
+            <input type="text" id="prixPhrase" placeholder="z. B. Nous sommes les champions des macarons !">
+          </div>
+          <div class="field hidden" data-prixbloc="image">
+            <label for="prixImage">Bild auswählen</label>
+            <input type="file" id="prixImage" accept="image/*">
+            <span class="hint">Das Bild wird in die JSON-Datei eingebettet – bitte klein halten (unter 500 KB).</span>
+            <input type="text" id="prixAlt" placeholder="Kurze Bildbeschreibung" style="margin-top:.5rem">
+            <div id="prixApercu" style="margin-top:.6rem"></div>
           </div>
         </div>
       </section>
@@ -181,7 +274,9 @@
   </footer>
 
   <script src="assets/core.js"></script>
+  <script src="assets/answers.js"></script>
   <script src="assets/player.js"></script>
+  <script src="assets/escape.js"></script>
   <script src="assets/demo.js"></script>
   <script src="assets/lehrer.js"></script>
 </body>

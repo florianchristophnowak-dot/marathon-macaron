@@ -180,3 +180,40 @@
   align-items: center;
   justify-content: center;
 }
+
+/* ---------- Wahl der Spielart ---------- */
+.modes { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; }
+.mode-card {
+  display: flex;
+  align-items: flex-start;
+  gap: .6rem;
+  margin: 0;
+  padding: .9rem;
+  border-radius: 18px;
+  border: 1.5px solid var(--bord);
+  background: var(--coque-2);
+  cursor: pointer;
+  font-weight: 400;
+  transition: border-color .12s ease, background .12s ease;
+}
+.mode-card:hover { border-color: var(--framboise); }
+.mode-card input { margin-top: .25rem; flex: none; }
+.mode-card b { display: block; font-size: 1rem; margin-bottom: .15rem; }
+.mode-card span { font-size: .87rem; color: var(--doux); }
+.mode-card b { color: var(--encre); }
+.mode-card:has(input:checked) {
+  border-color: var(--framboise);
+  background: var(--framboise-voile);
+}
+
+/* Code-Feld einer Station */
+.code-champ { display: flex; align-items: center; gap: .5rem; }
+.code-champ input {
+  max-width: 140px;
+  text-transform: uppercase;
+  font-weight: 800;
+  letter-spacing: .08em;
+  text-align: center;
+}
+.escape-only { display: none; }
+[data-mode="escape"] .escape-only { display: block; }

@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Le Marathon des Macarons – gemeinsamer Kern
+   Marathon Macaron – gemeinsamer Kern
    Datenmodell, Auswahl-Logik (Reihenfolge & Anzahl), Antwortpruefung, Punkte.
    Laeuft ohne Build-Schritt direkt per file:// im Browser.
    ========================================================================== */
@@ -49,7 +49,19 @@
     'Framboise', 'Caramel', 'Vanille', 'Myrtille', 'Citron', 'Chocolat', 'Brioche', 'Nougat'
   ];
 
-  M.TYPES = ['mcq', 'vf', 'text', 'gap'];
+  M.TYPES = ['mcq', 'vf', 'text', 'gap', 'matching', 'order'];
+
+  /* Zwei Spielarten: der Punkte-Marathon und das Escape-Spiel um den Tresor. */
+  M.MODES = ['marathon', 'escape'];
+
+  /* Bausteine fuer Stations-Codes im Escape-Modus. */
+  M.CODE_POOLS = {
+    letters: 'ABCDEFGHJKLMNPRSTUVWXYZ'.split(''),
+    digits: '0123456789'.split(''),
+    colors: ['ROUGE', 'BLEU', 'VERT', 'JAUNE', 'NOIR', 'ROSE', 'VIOLET', 'ORANGE'],
+    symbols: ['★', '▲', '●', '■', '◆', '☀', '☂', '✿'],
+    macarons: ['FRAMBOISE', 'PISTACHE', 'LAVANDE', 'CITRON', 'MYRTILLE', 'CHOCOLAT', 'VANILLE', 'CARAMEL']
+  };
 
   /* ---------- kleine Helfer ---------- */
 
@@ -83,6 +95,25 @@
       out[i] = out[j];
       out[j] = tmp;
     }
+    return out;
+  };
+
+  /* Wie shuffle, vermeidet aber die unveraenderte Ausgangsreihenfolge –
+     sonst steht die Loesung einer Reihenfolge-Aufgabe schon fertig da. */
+  M.melangerVraiment = function (list) {
+    var source = (list || []).slice();
+    if (source.length < 2) return source;
+    var depart = source.join('\u0000');
+    var out = source;
+    for (var essai = 0; essai < 12; essai++) {
+      out = M.shuffle(source);
+      if (out.join('\u0000') !== depart) return out;
+    }
+    /* Notfalls die ersten beiden tauschen. */
+    out = source.slice();
+    var tmp = out[0];
+    out[0] = out[1];
+    out[1] = tmp;
     return out;
   };
 
@@ -125,6 +156,15 @@
       .split(/[|\n]/)
       .map(function (v) { return v.trim(); })
       .filter(Boolean);
+  };
+
+  /* Codes werden grosszuegig verglichen: Gross-/Kleinschreibung und
+     Leerzeichen oder Bindestriche zwischen den Teilen sind egal. */
+  M.normalizeCode = function (value) {
+    return String(value === null || value === undefined ? '' : value)
+      .toUpperCase()
+      .replace(/[\s\-_.]/g, '')
+      .trim();
   };
 
   M.GAP_TOKEN = /_{2,}/g;
@@ -185,7 +225,36 @@
       answers: [],
       gapText: '',
       gaps: [],
-      ignoreAccents: true
+      pairs: [],
+      items: [],
+      ignoreAccents: true,
+      /* nur im Escape-Modus benutzt */
+      code: '',
+      manualSolve: false
+    };
+  };
+
+  /* Frische Frage mit sinnvollen Startwerten je Typ. */
+  M.newQuestion = function (type, index) {
+    var q = M.defaultQuestion(type, index);
+    if (type === 'matching') {
+      q.pairs = [{ left: '', right: '' }, { left: '', right: '' }, { left: '', right: '' }];
+    } else if (type === 'order') {
+      q.items = ['', '', ''];
+    }
+    return q;
+  };
+
+  M.defaultEscape = function () {
+    return {
+      intro: '',
+      timeLimitMin: 20,       /* 0 = ohne Zeitdruck */
+      hintCostMin: 2,         /* ein Tipp kostet Minuten */
+      lockOrder: true,        /* Stationen der Reihe nach */
+      codeStyle: 'letters',
+      finalCodeMode: 'auto',  /* 'auto' = Fragmente aneinander | 'manual' */
+      finalCode: '',
+      prize: { type: 'text', text: '', phrase: '', imageData: '', imageAlt: '' }
     };
   };
 
@@ -200,7 +269,9 @@
       author: '',
       createdAt: now,
       updatedAt: now,
+      mode: 'marathon',
       settings: M.defaultSettings(),
+      escape: M.defaultEscape(),
       questions: []
     };
   };
@@ -220,6 +291,7 @@
     var quiz = {
       format: M.FORMAT,
       version: M.VERSION,
+      mode: src.mode === 'escape' ? 'escape' : 'marathon',
       id: src.id || base.id,
       title: String(src.title === undefined || src.title === null ? '' : src.title),
       subtitle: String(src.subtitle || ''),
@@ -242,6 +314,7 @@
         ignoreAccents: s.ignoreAccents !== false,
         allowStudentSettings: s.allowStudentSettings === true
       },
+      escape: M.normalizeEscape(src.escape),
       questions: []
     };
 
@@ -254,6 +327,29 @@
     }).filter(Boolean).slice(0, M.MAX_QUESTIONS);
 
     return quiz;
+  };
+
+  M.normalizeEscape = function (raw) {
+    var base = M.defaultEscape();
+    var e = (raw && typeof raw === 'object') ? raw : {};
+    var prize = (e.prize && typeof e.prize === 'object') ? e.prize : {};
+    var typePrix = ['text', 'phrase', 'image'].indexOf(prize.type) >= 0 ? prize.type : 'text';
+    return {
+      intro: String(e.intro || ''),
+      timeLimitMin: M.clamp(e.timeLimitMin === undefined ? base.timeLimitMin : e.timeLimitMin, 0, 180),
+      hintCostMin: M.clamp(e.hintCostMin === undefined ? base.hintCostMin : e.hintCostMin, 0, 30),
+      lockOrder: e.lockOrder !== false,
+      codeStyle: M.CODE_POOLS[e.codeStyle] ? e.codeStyle : base.codeStyle,
+      finalCodeMode: e.finalCodeMode === 'manual' ? 'manual' : 'auto',
+      finalCode: String(e.finalCode || ''),
+      prize: {
+        type: typePrix,
+        text: String(prize.text || ''),
+        phrase: String(prize.phrase || ''),
+        imageData: String(prize.imageData || ''),
+        imageAlt: String(prize.imageAlt || '')
+      }
+    };
   };
 
   M.normalizeQuestion = function (raw, index, ignoreAccentsDefault) {
@@ -282,6 +378,19 @@
     /* correctText: Feldname der Vorgaenger-App */
     q.answers = M.splitAnswers(raw.answers !== undefined ? raw.answers : raw.correctText);
 
+    q.code = M.normalizeCode(raw.code || '');
+    q.manualSolve = raw.manualSolve === true;
+
+    var pairs = Array.isArray(raw.pairs) ? raw.pairs : [];
+    q.pairs = pairs.map(function (paire) {
+      if (!paire || typeof paire !== 'object') return { left: '', right: '' };
+      return { left: String(paire.left || ''), right: String(paire.right || '') };
+    }).slice(0, 8);
+
+    q.items = (Array.isArray(raw.items) ? raw.items : [])
+      .map(function (item) { return String(item === null || item === undefined ? '' : item); })
+      .slice(0, 8);
+
     q.gapText = String(raw.gapText || '');
     var gapCount = M.countGaps(q.gapText);
     var gaps = Array.isArray(raw.gaps) ? raw.gaps.map(function (g) { return String(g === null || g === undefined ? '' : g); }) : [];
@@ -301,6 +410,16 @@
       if (!String(q.options[q.correctIndex] || '').trim()) issues.push('empty-correct-option');
     }
     if (q.type === 'text' && !q.answers.length) issues.push('no-answers');
+    if (q.type === 'matching') {
+      var complets = q.pairs.filter(function (paire) {
+        return String(paire.left).trim() && String(paire.right).trim();
+      });
+      if (complets.length < 2) issues.push('few-pairs');
+    }
+    if (q.type === 'order') {
+      var remplis = q.items.filter(function (item) { return String(item).trim(); });
+      if (remplis.length < 2) issues.push('few-items');
+    }
     if (q.type === 'gap') {
       var gapCount = M.countGaps(q.gapText);
       if (!gapCount) issues.push('no-gap');
@@ -318,8 +437,47 @@
       M.questionIssues(q).forEach(function (code) {
         list.push({ index: index, code: code });
       });
+      if (quiz.mode === 'escape' && !M.normalizeCode(q.code)) {
+        list.push({ index: index, code: 'no-code' });
+      }
     });
+    if (quiz.mode === 'escape') {
+      if (quiz.escape.finalCodeMode === 'manual' && !M.normalizeCode(quiz.escape.finalCode)) {
+        list.push({ index: -1, code: 'no-final-code' });
+      }
+      if (!M.prizeIsSet(quiz.escape.prize)) {
+        list.push({ index: -1, code: 'no-prize' });
+      }
+    }
     return list;
+  };
+
+  M.prizeIsSet = function (prize) {
+    if (!prize) return false;
+    if (prize.type === 'image') return !!prize.imageData;
+    if (prize.type === 'phrase') return !!String(prize.phrase).trim();
+    return !!String(prize.text).trim();
+  };
+
+  /* Der Tresorcode: entweder die Fragmente der gespielten Stationen
+     oder ein von der Lehrkraft gesetzter fester Code. */
+  M.finalCode = function (quiz, run) {
+    if (quiz.escape && quiz.escape.finalCodeMode === 'manual') {
+      return M.normalizeCode(quiz.escape.finalCode);
+    }
+    var liste = (run && run.questions) ? run.questions : quiz.questions;
+    return liste.map(function (q) { return M.normalizeCode(q.code); }).join('');
+  };
+
+  /* Verteilt Code-Fragmente auf die Stationen – ohne Wiederholung, solange
+     der Vorrat reicht, und nicht in der offensichtlichen Reihenfolge. */
+  M.generateCodes = function (quiz) {
+    var pool = M.CODE_POOLS[quiz.escape.codeStyle] || M.CODE_POOLS.letters;
+    var melange = M.shuffle(pool);
+    quiz.questions.forEach(function (q, i) {
+      q.code = String(melange[i % melange.length]);
+    });
+    return quiz;
   };
 
   /* ---------- Reihenfolge & Anzahl ---------- */
@@ -371,6 +529,15 @@
         copy.options = mixed.map(function (p) { return p.text; });
         var newIndex = mixed.findIndex(function (p) { return p.i === q.correctIndex; });
         copy.correctIndex = newIndex >= 0 ? newIndex : 0;
+      } else if (copy.type === 'matching') {
+        copy.pairs = copy.pairs.filter(function (paire) {
+          return String(paire.left).trim() !== '' && String(paire.right).trim() !== '';
+        });
+        /* Die rechte Spalte wird gemischt angezeigt – die Zuordnung bleibt i -> i. */
+        copy.rightOrder = M.shuffle(copy.pairs.map(function (_, i) { return i; }));
+      } else if (copy.type === 'order') {
+        copy.items = copy.items.filter(function (item) { return String(item).trim() !== ''; });
+        copy.itemOrder = M.melangerVraiment(copy.items.map(function (_, i) { return i; }));
       } else if (copy.type === 'mcq') {
         var kept = copy.options.map(function (text, i) { return { text: text, i: i }; })
           .filter(function (p) { return String(p.text).trim() !== ''; });
@@ -400,6 +567,22 @@
       });
       return { correct: ok };
     }
+    if (question.type === 'matching') {
+      var choix = Array.isArray(response) ? response : [];
+      var perPair = question.pairs.map(function (_, i) { return choix[i] === i; });
+      return {
+        correct: perPair.length > 0 && perPair.every(Boolean),
+        perPair: perPair
+      };
+    }
+    if (question.type === 'order') {
+      var ordre = Array.isArray(response) ? response : [];
+      var perItem = question.items.map(function (_, i) { return ordre[i] === i; });
+      return {
+        correct: perItem.length > 0 && ordre.length === question.items.length && perItem.every(Boolean),
+        perItem: perItem
+      };
+    }
     if (question.type === 'gap') {
       var values = Array.isArray(response) ? response : [];
       var perGap = question.gaps.map(function (solution, i) {
@@ -424,6 +607,14 @@
     if (question.type === 'text') return question.answers.join(' / ');
     if (question.type === 'gap') {
       return question.gaps.map(function (g) { return M.splitAnswers(g)[0] || '…'; }).join(' · ');
+    }
+    if (question.type === 'matching') {
+      return question.pairs.map(function (paire) {
+        return paire.left + ' → ' + paire.right;
+      }).join(' · ');
+    }
+    if (question.type === 'order') {
+      return question.items.join(' → ');
     }
     return '';
   };

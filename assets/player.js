@@ -1,5 +1,5 @@
 /* ==========================================================================
-   Le Marathon des Macarons – Spiel-Engine der Oberflaeche
+   Marathon Macaron – Spiel-Engine der Oberflaeche
    Wird von der Schueler-App UND von der Vorschau im Lehrer-Editor benutzt,
    damit die Lehrkraft exakt das sieht, was die Klasse spaeter spielt.
    Alle sichtbaren Texte sind franzoesisch.
@@ -10,12 +10,7 @@
   var M = global.Macaron;
   if (!M) throw new Error('core.js muss vor player.js geladen werden.');
 
-  var TYPE_LABEL_FR = {
-    mcq: 'Choix multiple',
-    vf: 'Vrai ou faux',
-    text: 'Réponse libre',
-    gap: 'Texte à trous'
-  };
+  var TYPE_LABEL_FR = M.answers.LABELS;
 
   var BRAVO = ['Bravo !', 'Excellent !', 'Parfait !', 'Super !', 'Magnifique !', 'Délicieux !'];
   var PRESQUE = ['Presque…', 'Pas tout à fait…', 'Dommage !', 'Encore un effort !'];
@@ -145,48 +140,6 @@
       return run.questions[state.index];
     }
 
-    function answerZoneHtml(q) {
-      if (q.type === 'mcq') {
-        var options = q.options.map(function (opt, i) {
-          return '<button type="button" class="option" data-choice="' + i + '">' +
-            '<span class="option__key">' + (i + 1) + '</span>' +
-            '<span class="option__text">' + M.esc(opt) + '</span>' +
-            '</button>';
-        }).join('');
-        return '<div class="options">' + options + '</div>';
-      }
-
-      if (q.type === 'vf') {
-        return '<div class="vf-row">' +
-          '<button type="button" class="option" data-vf="vrai"><span class="option__key">1</span><span class="option__text">✔️ vrai</span></button>' +
-          '<button type="button" class="option" data-vf="faux"><span class="option__key">2</span><span class="option__text">✖️ faux</span></button>' +
-          '</div>';
-      }
-
-      if (q.type === 'text') {
-        return '<div class="text-answer">' +
-          '<input type="text" data-role="texte" autocomplete="off" autocapitalize="sentences" spellcheck="false" placeholder="Écris ta réponse en français…">' +
-          '<button type="button" class="btn" data-role="valider">Valider</button>' +
-          '</div>';
-      }
-
-      /* gap */
-      var parts = M.splitGapText(q.gapText);
-      var gapIndex = 0;
-      var phrase = parts.map(function (part) {
-        if (part.kind === 'text') return M.esc(part.value);
-        var solutions = M.splitAnswers(q.gaps[gapIndex] || '');
-        var taille = Math.max(6, (solutions[0] || '').length + 2);
-        var html = '<input type="text" class="gap-input" data-gap="' + gapIndex + '" ' +
-          'style="width:' + taille + 'ch" autocomplete="off" spellcheck="false" ' +
-          'aria-label="Trou ' + (gapIndex + 1) + '">';
-        gapIndex++;
-        return html;
-      }).join('');
-      return '<div class="gap-phrase">' + phrase + '</div>' +
-        '<div class="row row--end"><button type="button" class="btn" data-role="valider">Valider</button></div>';
-    }
-
     function renderQuestion() {
       var q = currentQuestion();
       if (!q) { finish(); return; }
@@ -214,10 +167,12 @@
             '<span class="pill">' + TYPE_LABEL_FR[q.type] + '</span>' +
           '</div>' +
           consigne +
-          '<div data-zone="reponses">' + answerZoneHtml(q) + '</div>' +
+          '<div data-zone="reponses">' + M.answers.html(q) + '</div>' +
           '<div data-zone="indice">' + indiceHtml + '</div>' +
           '<div data-zone="feedback"></div>' +
         '</div>';
+
+      M.answers.activate(zoneScene, q);
 
       var premier = zoneScene.querySelector('[data-role="texte"], .gap-input');
       if (premier) premier.focus();
@@ -229,33 +184,14 @@
 
     /* ---------- Antwort auswerten ---------- */
 
-    function lireReponse(q) {
-      if (q.type === 'text') {
-        var champ = zoneScene.querySelector('[data-role="texte"]');
-        return champ ? champ.value : '';
-      }
-      if (q.type === 'gap') {
-        return Array.prototype.map.call(
-          zoneScene.querySelectorAll('.gap-input'),
-          function (input) { return input.value; }
-        );
-      }
-      return null;
-    }
-
     function repondre(reponse) {
       if (state.answered || state.finished) return;
       var q = currentQuestion();
       if (!q) return;
 
-      if ((q.type === 'text' || q.type === 'gap')) {
-        var vide = q.type === 'text'
-          ? !String(reponse || '').trim()
-          : !reponse.some(function (v) { return String(v).trim(); });
-        if (vide) {
-          M.toast('Écris d’abord ta réponse.', 'erreur');
-          return;
-        }
+      if (M.answers.incomplete(q, reponse)) {
+        M.toast(M.answers.INCOMPLETE_FR[q.type] || 'Il manque quelque chose.', 'erreur');
+        return;
       }
 
       state.answered = true;
@@ -273,8 +209,10 @@
         flavor: q.flavor,
         correct: !!verdict.correct,
         perGap: verdict.perGap || null,
+        perPair: verdict.perPair || null,
+        perItem: verdict.perItem || null,
         response: reponse,
-        responseText: texteReponse(q, reponse),
+        responseText: M.answers.responseText(q, reponse),
         correctText: M.correctAnswerText(q),
         explanation: q.explanation || '',
         timeMs: timeMs,
@@ -288,51 +226,13 @@
       }
       entry.points = M.scoreAnswer(entry, streak, settings);
 
-      marquerReponses(q, entry);
+      M.answers.mark(q, zoneScene, entry);
+      var boutonIndice = zoneScene.querySelector('[data-role="indice"]');
+      if (boutonIndice) boutonIndice.remove();
       if (entry.correct) effetJuste(q.flavor); else effetRate();
       renderFeedback(q, entry);
       renderBar();
       renderMeta();
-    }
-
-    function texteReponse(q, reponse) {
-      if (q.type === 'mcq') return String(q.options[reponse] || '');
-      if (q.type === 'vf') return String(reponse || '');
-      if (q.type === 'text') return String(reponse || '');
-      return (reponse || []).map(function (v) { return String(v).trim() || '…'; }).join(' · ');
-    }
-
-    function marquerReponses(q, entry) {
-      var boutons = zoneScene.querySelectorAll('.option');
-      Array.prototype.forEach.call(boutons, function (btn) {
-        btn.disabled = true;
-        var valeur = btn.hasAttribute('data-choice')
-          ? parseInt(btn.getAttribute('data-choice'), 10)
-          : btn.getAttribute('data-vf');
-        var estBonne = q.type === 'mcq' ? valeur === q.correctIndex : valeur === q.correctVF;
-        var choisi = valeur === entry.response;
-        if (estBonne) btn.classList.add('option--juste');
-        else if (choisi) btn.classList.add('option--rate');
-        else btn.classList.add('option--pale');
-      });
-
-      var champ = zoneScene.querySelector('[data-role="texte"]');
-      if (champ) {
-        champ.disabled = true;
-        champ.classList.add(entry.correct ? 'gap-input--juste' : 'gap-input--rate');
-      }
-
-      if (q.type === 'gap' && entry.perGap) {
-        Array.prototype.forEach.call(zoneScene.querySelectorAll('.gap-input'), function (input, i) {
-          input.disabled = true;
-          input.classList.add(entry.perGap[i] ? 'gap-input--juste' : 'gap-input--rate');
-        });
-      }
-
-      var boutonValider = zoneScene.querySelector('[data-role="valider"]');
-      if (boutonValider) boutonValider.remove();
-      var boutonIndice = zoneScene.querySelector('[data-role="indice"]');
-      if (boutonIndice) boutonIndice.remove();
     }
 
     function renderFeedback(q, entry) {
@@ -498,7 +398,7 @@
       }
       var role = cible.getAttribute('data-role');
       if (role === 'valider') {
-        repondre(lireReponse(currentQuestion()));
+        repondre(M.answers.read(currentQuestion(), zoneScene));
       } else if (role === 'suivant') {
         suivante();
       } else if (role === 'indice') {
@@ -538,9 +438,9 @@
           return;
         }
         var q = currentQuestion();
-        if (q && (q.type === 'text' || q.type === 'gap')) {
+        if (q && M.answers.needsValidate(q)) {
           event.preventDefault();
-          repondre(lireReponse(q));
+          repondre(M.answers.read(q, zoneScene));
         }
         return;
       }

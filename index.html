@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Le Marathon des Macarons – Französisch-Quiz</title>
+  <title>Marathon Macaron – Französisch-Quiz</title>
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cellipse cx='32' cy='23' rx='27' ry='16' fill='%23c5b1f0'/%3E%3Crect x='3' y='27' width='58' height='12' rx='6' fill='%23f1ecff'/%3E%3Cellipse cx='32' cy='43' rx='27' ry='16' fill='%239b7fdb'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="assets/macaron.css">
   <style>
@@ -41,8 +41,8 @@
         <span class="macaron macaron--xl" data-flavor="citron"><i class="coque-haut"></i><i class="ganache"></i><i class="coque-bas"></i></span>
         <span class="macaron macaron--xl" data-flavor="myrtille"><i class="coque-haut"></i><i class="ganache"></i><i class="coque-bas"></i></span>
       </div>
-      <h1>Le Marathon des Macarons</h1>
-      <p class="muted">Ein Französisch-Quiz für die Klasse – komplett lokal, ohne Konto, ohne Internet.</p>
+      <h1>Marathon Macaron</h1>
+      <p class="muted">Französisch üben in der Klasse – komplett lokal, ohne Konto, ohne Internet.</p>
       <div class="row row--center" style="margin-top:.8rem">
         <button type="button" class="theme-toggle" id="btnTheme">🎨 Farben wechseln</button>
       </div>
@@ -52,27 +52,44 @@
       <a class="card card--ganache porte" href="lehrer.html">
         <span class="macaron macaron--l" data-flavor="pistache" aria-hidden="true"><i class="coque-haut"></i><i class="ganache"></i><i class="coque-bas"></i></span>
         <h2>L'Atelier – für Lehrkräfte</h2>
-        <p class="muted">Quiz zusammenstellen: Multiple Choice, vrai/faux, Freitext und Lückentext.
-          Reihenfolge und Anzahl der Fragen festlegen, Vorschau spielen und als JSON-Datei speichern.</p>
+        <p class="muted">Quiz zusammenstellen: Multiple Choice, vrai/faux, Freitext, Lückentext, Zuordnung und Reihenfolge.
+          Spielart, Reihenfolge und Anzahl festlegen, Vorschau spielen und als JSON-Datei speichern.</p>
         <span class="btn cta">Atelier öffnen →</span>
       </a>
 
       <a class="card card--ganache porte" href="eleve.html">
         <span class="macaron macaron--l" data-flavor="framboise" aria-hidden="true"><i class="coque-haut"></i><i class="ganache"></i><i class="coque-bas"></i></span>
-        <h2>Le Marathon – für Schüler*innen</h2>
-        <p class="muted">Quiz-Datei laden, Namen ziehen und losspielen. Punkte für Tempo und
-          Serien, Korrektur am Ende. Die Oberfläche ist komplett auf Französisch.</p>
+        <h2>Marathon Macaron – für Schüler*innen</h2>
+        <p class="muted">Quiz-Datei laden, Namen ziehen und losspielen – als Punkte-Marathon oder als
+          Escape-Spiel um den Tresor. Die Oberfläche ist komplett auf Französisch.</p>
         <span class="btn cta">Marathon starten →</span>
       </a>
     </div>
 
     <div class="card" style="margin-top:22px">
+      <h2>Zwei Spielarten – dieselben Fragen</h2>
+      <div class="portes" style="margin-top:0">
+        <div>
+          <h3>🍬 Le Marathon</h3>
+          <p class="muted small">Frage für Frage. Punkte für Tempo und richtige Serien, am Ende Score
+            und Korrektur. Gut für eine schnelle Übungsrunde.</p>
+        </div>
+        <div>
+          <h3>🔐 Le Coffre à Macarons</h3>
+          <p class="muted small">Escape-Spiel: Jede gelöste Station gibt ein Code-Fragment frei.
+            Zusammen öffnen sie den Tresor – mit Countdown und Preis. Gut für eine ganze Stunde.</p>
+        </div>
+      </div>
+      <p class="small muted" style="margin-top:.8rem">Umschalten im Atelier unter „Spielablauf". Die Fragen bleiben dabei dieselben.</p>
+    </div>
+
+    <div class="card">
       <h2>So läuft es ab</h2>
       <ol class="etapes">
         <li><span>Die Lehrkraft baut im <strong>Atelier</strong> ein Quiz und legt fest, wie viele Fragen in welcher Reihenfolge gespielt werden.</span></li>
         <li><span>Mit <strong>„Als JSON speichern"</strong> entsteht eine kleine Datei – sie enthält Fragen und Spielregeln.</span></li>
         <li><span>Die Datei an die Klasse geben: Lernplattform, Mail, USB-Stick oder gemeinsamer Ordner.</span></li>
-        <li><span>Die Klasse öffnet <strong>Le Marathon</strong>, lädt die Datei und spielt – auch offline.</span></li>
+        <li><span>Die Klasse öffnet <strong>Marathon Macaron</strong>, lädt die Datei und spielt – auch offline.</span></li>
       </ol>
       <p class="small muted" style="margin-top:1rem">
         Alle Daten bleiben auf dem jeweiligen Gerät. Es werden keine Ergebnisse verschickt und kein Server gebraucht.
@@ -80,7 +97,7 @@
     </div>
   </div>
 
-  <footer class="app-footer">Le Marathon des Macarons 🇫🇷 · Französisch üben mit Genuss</footer>
+  <footer class="app-footer">Marathon Macaron 🇫🇷 · Französisch üben mit Genuss</footer>
 
   <script src="assets/core.js"></script>
   <script>

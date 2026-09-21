@@ -1,11 +1,11 @@
 /* Beispiel-Quiz, damit beide Apps ohne Datei sofort ausprobiert werden koennen.
    Es wird als window.MACARON_DEMO bereitgestellt (kein fetch – laeuft per file://).
-   Dieselben Daten liegen als Datei unter exemples/marathon-des-macarons.json. */
+   Dieselben Daten liegen als Datei unter exemples/marathon-macaron-demo.json. */
 window.MACARON_DEMO = {
   "format": "marathon-macaron-quiz",
   "version": 1,
   "id": "quiz_demo_macaron",
-  "title": "Le Marathon des Macarons – Tour d'échauffement",
+  "title": "Marathon Macaron – Tour d'échauffement",
   "subtitle": "Présent, articles et vocabulaire du quotidien (A1–A2)",
   "author": "Atelier des Macarons",
   "settings": {
@@ -142,6 +142,37 @@ window.MACARON_DEMO = {
       "correctVF": "faux",
       "explanation": "On dit « j'ai 15 ans » – avec le verbe « avoir ».",
       "options": ["", "", "", ""], "correctIndex": 0, "answers": [], "hint": "", "gapText": "", "gaps": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_13",
+      "type": "matching",
+      "discipline": "Triathlon de la pâtisserie",
+      "prompt": "Associe chaque lieu à son activité.",
+      "pairs": [
+        { "left": "la plage", "right": "on nage" },
+        { "left": "la montagne", "right": "on fait du ski" },
+        { "left": "le musée", "right": "on regarde des tableaux" },
+        { "left": "la bibliothèque", "right": "on lit des livres" }
+      ],
+      "explanation": "Chaque lieu a son activité typique – pense aux mots-clés.",
+      "options": ["", "", "", ""], "correctIndex": 0, "correctVF": "vrai", "answers": [],
+      "hint": "", "gapText": "", "gaps": [], "items": [], "ignoreAccents": true
+    },
+    {
+      "id": "q_demo_14",
+      "type": "order",
+      "discipline": "Tournoi de la madeleine",
+      "prompt": "Remets la journée de Camille dans le bon ordre.",
+      "items": [
+        "Je me lève.",
+        "Je prends mon petit-déjeuner.",
+        "Je prends le bus.",
+        "J'arrive au collège."
+      ],
+      "hint": "Pense à la logique de la matinée.",
+      "explanation": "D'abord se lever, puis manger, puis partir – et enfin arriver.",
+      "options": ["", "", "", ""], "correctIndex": 0, "correctVF": "vrai", "answers": [],
+      "gapText": "", "gaps": [], "pairs": [], "ignoreAccents": true
     }
   ]
 };
