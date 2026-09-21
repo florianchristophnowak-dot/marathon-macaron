@@ -48,6 +48,7 @@
 
     init: function () {
       M.theme.init();
+      M.parfum.init();
       this.charger();
 
       if (!this.state.quizzes.length) {
@@ -106,9 +107,17 @@
     brancher: function () {
       var self = this;
 
-      document.getElementById('btnTheme').addEventListener('click', function () {
-        M.toast('Farbschema: ' + M.theme.label(M.theme.cycle()));
+      var btnTheme = document.getElementById('btnTheme');
+      function majTheme() {
+        btnTheme.textContent = M.theme.icon();
+        btnTheme.title = M.theme.title();
+        btnTheme.setAttribute('aria-label', M.theme.title());
+      }
+      btnTheme.addEventListener('click', function () {
+        M.theme.toggle();
+        majTheme();
       });
+      majTheme();
 
       document.getElementById('btnNeu').addEventListener('click', function () {
         var quiz = M.createQuiz('');

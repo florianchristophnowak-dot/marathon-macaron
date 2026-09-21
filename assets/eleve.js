@@ -16,6 +16,7 @@
 
     init: function () {
       M.theme.init();
+      M.parfum.init();
       this.brancher();
       this.nom = M.storage.get(CLE_NOM, '') || this.tirerNom();
       this.ecran('charger');
@@ -36,10 +37,17 @@
     brancher: function () {
       var self = this;
 
-      document.getElementById('btnTheme').addEventListener('click', function () {
-        var mode = M.theme.cycle();
-        M.toast('Couleurs : ' + M.theme.labelFr(mode));
+      var btnTheme = document.getElementById('btnTheme');
+      function majTheme() {
+        btnTheme.textContent = M.theme.icon();
+        btnTheme.title = M.theme.titleFr();
+        btnTheme.setAttribute('aria-label', M.theme.titleFr());
+      }
+      btnTheme.addEventListener('click', function () {
+        M.theme.toggle();
+        majTheme();
       });
+      majTheme();
 
       document.getElementById('fichierQuiz').addEventListener('change', function (event) {
         var fichier = event.target.files && event.target.files[0];

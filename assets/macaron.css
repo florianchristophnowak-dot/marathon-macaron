@@ -38,6 +38,15 @@
   --faux: var(--framboise);
   --champ-bg: #fffdfb;
 
+  /* Die Macaron-Sorten – das Easteregg tauscht genau diese Werte aus. */
+  --p-framboise: #de4f70;  --p-framboise-clair: #f6a0b4;  --p-framboise-ganache: #ffe7ee;
+  --p-pistache:  #6cb175;  --p-pistache-clair:  #a9d9ad;  --p-pistache-ganache:  #eefaea;
+  --p-lavande:   #9b7fdb;  --p-lavande-clair:   #c5b1f0;  --p-lavande-ganache:   #f1ecff;
+  --p-citron:    #e6b23c;  --p-citron-clair:    #f7d783;  --p-citron-ganache:    #fff5dc;
+  --p-myrtille:  #5f77dd;  --p-myrtille-clair:  #a3b2f2;  --p-myrtille-ganache:  #e9edff;
+  --p-chocolat:  #8a5a45;  --p-chocolat-clair:  #bd8b72;  --p-chocolat-ganache:  #f6e6da;
+  --p-vanille:   #d9c39a;  --p-vanille-clair:   #f0e3c6;  --p-vanille-ganache:   #fffaf0;
+
   --rayon: 20px;
   --rayon-s: 12px;
   --police: "Avenir Next", "Segoe UI", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
@@ -179,13 +188,13 @@ a { color: var(--framboise); }
   box-shadow: inset 0 -1px 0 rgba(0, 0, 0, 0.08);
 }
 
-.macaron[data-flavor="framboise"] { --m-base: #de4f70; --m-clair: #f6a0b4; --m-ganache: #ffe7ee; }
-.macaron[data-flavor="pistache"]  { --m-base: #6cb175; --m-clair: #a9d9ad; --m-ganache: #eefaea; }
-.macaron[data-flavor="lavande"]   { --m-base: #9b7fdb; --m-clair: #c5b1f0; --m-ganache: #f1ecff; }
-.macaron[data-flavor="citron"]    { --m-base: #e6b23c; --m-clair: #f7d783; --m-ganache: #fff5dc; }
-.macaron[data-flavor="myrtille"]  { --m-base: #5f77dd; --m-clair: #a3b2f2; --m-ganache: #e9edff; }
-.macaron[data-flavor="chocolat"]  { --m-base: #8a5a45; --m-clair: #bd8b72; --m-ganache: #f6e6da; }
-.macaron[data-flavor="vanille"]   { --m-base: #d9c39a; --m-clair: #f0e3c6; --m-ganache: #fffaf0; }
+.macaron[data-flavor="framboise"] { --m-base: var(--p-framboise); --m-clair: var(--p-framboise-clair); --m-ganache: var(--p-framboise-ganache); }
+.macaron[data-flavor="pistache"]  { --m-base: var(--p-pistache);  --m-clair: var(--p-pistache-clair);  --m-ganache: var(--p-pistache-ganache); }
+.macaron[data-flavor="lavande"]   { --m-base: var(--p-lavande);   --m-clair: var(--p-lavande-clair);   --m-ganache: var(--p-lavande-ganache); }
+.macaron[data-flavor="citron"]    { --m-base: var(--p-citron);    --m-clair: var(--p-citron-clair);    --m-ganache: var(--p-citron-ganache); }
+.macaron[data-flavor="myrtille"]  { --m-base: var(--p-myrtille);  --m-clair: var(--p-myrtille-clair);  --m-ganache: var(--p-myrtille-ganache); }
+.macaron[data-flavor="chocolat"]  { --m-base: var(--p-chocolat);  --m-clair: var(--p-chocolat-clair);  --m-ganache: var(--p-chocolat-ganache); }
+.macaron[data-flavor="vanille"]   { --m-base: var(--p-vanille);   --m-clair: var(--p-vanille-clair);   --m-ganache: var(--p-vanille-ganache); }
 
 .macaron--xs { --taille: 18px; }
 .macaron--s { --taille: 26px; }
@@ -222,6 +231,10 @@ a { color: var(--framboise); }
   box-shadow: var(--ombre);
 }
 .card + .card { margin-top: 16px; }
+/* In Rastern sorgt die Rasterlücke für den Abstand – sonst rutscht die
+   zweite Karte nach unten und wird dadurch niedriger als die erste. */
+.grid-2 .card + .card,
+.portes .card + .card { margin-top: 0; }
 .card--ganache { padding-top: 26px; overflow: hidden; }
 /* Die "Fuellung": ein farbiger Streifen am oberen Kartenrand */
 .card--ganache::before {
@@ -460,6 +473,27 @@ input.nombre-mini {
   gap: 0.4rem;
 }
 .theme-toggle:hover { background: var(--coque-2); }
+
+/* Bewusst klein und zurückhaltend – gehört in die Fußzeile. */
+.theme-btn {
+  appearance: none;
+  border: 1px solid var(--bord);
+  background: var(--coque);
+  color: var(--encre);
+  border-radius: 999px;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 0.9rem;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 0.65;
+  vertical-align: middle;
+  margin-left: 0.5rem;
+  transition: opacity 0.15s ease, background 0.15s ease;
+}
+.theme-btn:hover { opacity: 1; background: var(--coque-2); }
+.theme-btn:focus-visible { outline: 3px solid var(--lavande); outline-offset: 2px; opacity: 1; }
 
 .app-footer {
   text-align: center;

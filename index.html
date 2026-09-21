@@ -18,6 +18,7 @@
       color: inherit;
       transition: transform .15s ease, box-shadow .15s ease;
     }
+    .portes .card + .card { margin-top: 0; }
     .porte:hover { transform: translateY(-4px); box-shadow: var(--ombre-forte); }
     .porte h2 { margin: 0; }
     .porte .cta { margin-top: auto; align-self: flex-start; }
@@ -43,9 +44,6 @@
       </div>
       <h1>Marathon Macaron</h1>
       <p class="muted">Französisch üben in der Klasse – komplett lokal, ohne Konto, ohne Internet.</p>
-      <div class="row row--center" style="margin-top:.8rem">
-        <button type="button" class="theme-toggle" id="btnTheme">🎨 Farben wechseln</button>
-      </div>
     </div>
 
     <div class="portes">
@@ -97,14 +95,24 @@
     </div>
   </div>
 
-  <footer class="app-footer">Marathon Macaron 🇫🇷 · Französisch üben mit Genuss</footer>
+  <footer class="app-footer">Marathon Macaron 🇫🇷 · Französisch üben mit Genuss<button type="button" class="theme-btn" id="btnTheme"></button></footer>
 
   <script src="assets/core.js"></script>
   <script>
     Macaron.theme.init();
-    document.getElementById('btnTheme').addEventListener('click', function () {
-      Macaron.toast('Farbschema: ' + Macaron.theme.label(Macaron.theme.cycle()));
+    Macaron.parfum.init();
+
+    var btnTheme = document.getElementById('btnTheme');
+    function majTheme() {
+      btnTheme.textContent = Macaron.theme.icon();
+      btnTheme.title = Macaron.theme.title();
+      btnTheme.setAttribute('aria-label', Macaron.theme.title());
+    }
+    btnTheme.addEventListener('click', function () {
+      Macaron.theme.toggle();
+      majTheme();
     });
+    majTheme();
   </script>
 </body>
 </html>

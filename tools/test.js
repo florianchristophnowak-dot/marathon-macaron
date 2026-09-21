@@ -6,7 +6,19 @@ const fs = require('fs');
 
 /* core.js erwartet ein window-Objekt. */
 global.window = global;
-global.document = { createElement: () => ({ style: {} }), querySelector: () => null, body: null };
+const posees = {};
+global.document = {
+  createElement: () => ({ style: {} }),
+  querySelector: () => null,
+  addEventListener: () => {},
+  body: null,
+  documentElement: {
+    style: { setProperty: (cle, valeur) => { posees[cle] = valeur; } },
+    setAttribute: (cle, valeur) => { posees['@' + cle] = valeur; },
+    removeAttribute: (cle) => { delete posees['@' + cle]; }
+  }
+};
+global.matchMedia = () => ({ matches: false });
 require(path.join(__dirname, '..', 'assets', 'core.js'));
 const M = global.Macaron;
 
@@ -374,6 +386,92 @@ console.log('Escape-Modus');
   const alt = M.normalizeQuiz({ title: 'Alt', questions: [{ type: 'vf', questionText: 'x' }] });
   pruefe('alte Dateien sind weiterhin Marathon', alt.mode === 'marathon');
   pruefe('alte Dateien bekommen Escape-Standardwerte', alt.escape.finalCodeMode === 'auto');
+}
+
+/* ---------- Farbschema ---------- */
+console.log('Farbschema');
+{
+  const memoire = {};
+  const vraiStorage = M.storage;
+  M.storage = {
+    get: (cle, secours) => (cle in memoire ? memoire[cle] : secours),
+    set: (cle, valeur) => { memoire[cle] = valeur; return true; },
+    remove: (cle) => { delete memoire[cle]; }
+  };
+
+  pruefe('ohne Wahl gilt das System', M.theme.stored() === null);
+  pruefe('System hell erkannt', M.theme.effective() === 'light');
+  pruefe('erster Klick schaltet auf dunkel', M.theme.toggle() === 'dark');
+  pruefe('zweiter Klick schaltet zurueck', M.theme.toggle() === 'light');
+  pruefe('dritter Klick wieder dunkel', M.theme.toggle() === 'dark');
+  pruefe('nur zwei Zustaende', ['light', 'dark'].indexOf(M.theme.stored()) >= 0);
+  pruefe('Symbol zeigt das Gegenteil', M.theme.icon() === '☀️');
+
+  M.storage = vraiStorage;
+}
+
+/* ---------- Easteregg: Parfums ---------- */
+console.log('Parfums der Macarons');
+{
+  const sortes = ['framboise', 'pistache', 'lavande', 'citron', 'myrtille', 'chocolat', 'vanille'];
+  pruefe('mehrere Parfums vorhanden', M.PARFUMS.length >= 4, String(M.PARFUMS.length));
+  pruefe('Kennungen sind eindeutig',
+    new Set(M.PARFUMS.map(p => p.id)).size === M.PARFUMS.length);
+  pruefe('das erste ist classique', M.PARFUMS[0].id === 'classique');
+
+  let complet = true;
+  let couleursValides = true;
+  M.PARFUMS.forEach(parfum => {
+    sortes.forEach(sorte => {
+      const trio = parfum.couleurs[sorte];
+      if (!trio || trio.length !== 3) { complet = false; return; }
+      trio.forEach(c => { if (!/^#[0-9a-f]{6}$/i.test(c)) couleursValides = false; });
+    });
+  });
+  pruefe('jedes Parfum deckt alle sieben Sorten ab', complet);
+  pruefe('alle Farbwerte sind gueltige Hex-Codes', couleursValides);
+
+  pruefe('unbekannte Kennung faellt auf classique zurueck',
+    M.parfum.trouver('gibtsnicht').id === 'classique');
+
+  const memoire = {};
+  const vraiStorage = M.storage;
+  M.storage = {
+    get: (cle, secours) => (cle in memoire ? memoire[cle] : secours),
+    set: (cle, valeur) => { memoire[cle] = valeur; return true; },
+    remove: (cle) => { delete memoire[cle]; }
+  };
+
+  pruefe('Start bei classique', M.parfum.current().id === 'classique');
+  const zweites = M.parfum.next();
+  pruefe('weiterschalten wechselt das Parfum', zweites.id !== 'classique');
+  pruefe('Wahl wird gemerkt', M.parfum.current().id === zweites.id);
+  pruefe('Farbvariablen werden gesetzt', posees['--p-framboise'] === zweites.couleurs.framboise[0],
+    String(posees['--p-framboise']));
+
+  /* Einmal ganz herum landet wieder bei classique. */
+  for (let i = 1; i < M.PARFUMS.length; i++) M.parfum.next();
+  pruefe('Runde schliesst sich wieder bei classique', M.parfum.current().id === 'classique');
+
+  M.storage = vraiStorage;
+}
+
+/* ---------- Lueckenbreite ---------- */
+console.log('Lueckentext');
+{
+  const q = M.defaultQuestion('gap', 0);
+  q.gapText = 'Nous ___ et vous ___ .';
+  q.gaps = ['on mange|nous mangeons des crêpes', 'x'];
+  pruefe('zwei Luecken erkannt', M.countGaps(q.gapText) === 2);
+  /* Die Breite richtet sich nach der laengsten gueltigen Loesung. */
+  const alternatives = M.splitAnswers(q.gaps[0]);
+  const plusLongue = alternatives.reduce((max, mot) => Math.max(max, mot.length), 0);
+  pruefe('laengste Alternative wird erkannt', plusLongue === 'nous mangeons des crêpes'.length,
+    String(plusLongue));
+  pruefe('kurze Alternative zaehlt weiterhin als richtig',
+    M.checkAnswer(q, ['on mange', 'x']).correct);
+  pruefe('lange Alternative zaehlt ebenfalls',
+    M.checkAnswer(q, ['nous mangeons des crêpes', 'x']).correct);
 }
 
 console.log('\n' + ok + ' Prüfungen bestanden, ' + fehler + ' fehlgeschlagen.');

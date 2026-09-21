@@ -67,9 +67,13 @@
     var phrase = parts.map(function (part) {
       if (part.kind === 'text') return M.esc(part.value);
       var solutions = M.splitAnswers(q.gaps[gapIndex] || '');
-      var taille = Math.max(6, (solutions[0] || '').length + 2);
+      var plusLongue = solutions.reduce(function (max, mot) {
+        return Math.max(max, mot.length);
+      }, 0);
+      var taille = Math.max(7, plusLongue + 3);
       var html = '<input type="text" class="gap-input" data-gap="' + gapIndex + '" ' +
-        'style="width:' + taille + 'ch" autocomplete="off" spellcheck="false" ' +
+        'data-base="' + taille + '" style="width:calc(' + taille + 'ch + 1.2rem)" ' +
+        'autocomplete="off" spellcheck="false" ' +
         'aria-label="Trou ' + (gapIndex + 1) + '">';
       gapIndex++;
       return html;
@@ -134,7 +138,21 @@
   A.activate = function (root, q) {
     if (q.type === 'matching') activerAppariement(root);
     if (q.type === 'order') activerClassement(root);
+    if (q.type === 'gap') activerLacunes(root);
   };
+
+  /* Eine Lücke ist so breit wie ihre längste Lösung – und wächst mit, wenn
+     jemand eine längere Antwort eintippt, damit nichts abgeschnitten wirkt. */
+  function activerLacunes(root) {
+    Array.prototype.forEach.call(root.querySelectorAll('.gap-input'), function (champ) {
+      var base = parseInt(champ.getAttribute('data-base'), 10) || 7;
+      function ajuster() {
+        champ.style.width = 'calc(' + Math.max(base, champ.value.length + 2) + 'ch + 1.2rem)';
+      }
+      champ.addEventListener('input', ajuster);
+      ajuster();
+    });
+  }
 
   function boutonsLien(root, cote) {
     return Array.prototype.slice.call(root.querySelectorAll('[data-' + cote + ']'));

@@ -73,7 +73,7 @@ verteilen – als Buchstaben, Ziffern, Farben, Symbole oder Macaron-Sorten.
 | **Multiple Choice** | 2 bis 6 Antwortoptionen, eine davon richtig. Die Reihenfolge der Optionen kann gemischt werden. |
 | **vrai / faux** | Eine Aussage, wahr oder falsch. |
 | **Freitext** | Die Klasse tippt die Antwort. Mehrere Lösungen erlaubt (eine pro Zeile), Groß-/Kleinschreibung und Satzzeichen sind egal, Akzente auf Wunsch auch. |
-| **Lückentext** | Satz mit `___` für jede Lücke – ideal für Konjugationen: `Nous ___ trois macarons.` Für jede Lücke ein Lösungsfeld, Alternativen mit `\|` trennen (`vais\|je vais`). |
+| **Lückentext** | Satz mit `___` für jede Lücke – ideal für Konjugationen: `Nous ___ trois macarons.` Für jede Lücke ein Lösungsfeld, Alternativen mit `\|` trennen (`vais\|je vais`). Das Eingabefeld ist so breit wie die längste gültige Lösung und wächst beim Tippen mit. |
 | **Zuordnung** | Paare verbinden (Ort → Aktivität, Wort → Übersetzung). Die rechte Spalte wird gemischt; im Spiel tippt man links an, dann rechts – die Paare bekommen Nummern und Farben. |
 | **Reihenfolge** | Elemente in die richtige Ordnung bringen (Tagesablauf, Satzbau). Im Editor steht die Lösung, im Spiel wird gemischt – sortiert wird mit Pfeiltasten oder per Ziehen. |
 
@@ -176,15 +176,31 @@ Alles dreht sich um das Macaron: zwei Schalen (*coques*) mit einer Füllung
 (*ganache*) dazwischen. Das Motiv steckt im Logo, im farbigen Streifen am oberen
 Kartenrand und im Fortschrittsbalken – dort steht ein Macaron pro Frage, blass für
 offene, farbig für richtige, angeknabbert für falsche. Die Palette kommt aus der
-Pâtisserie: framboise, pistache, lavande, citron, myrtille, chocolat. Ein helles und
-ein dunkles Farbschema sind eingebaut (Knopf 🎨, folgt sonst dem System).
+Pâtisserie: framboise, pistache, lavande, citron, myrtille, chocolat.
+
+Es gibt ein **helles und ein dunkles Farbschema**. Ohne Zutun folgt die App der
+Einstellung des Betriebssystems; der kleine Knopf in der Fußzeile schaltet zwischen den
+beiden um und merkt sich die Wahl.
+
+### 🥚 Easter Egg
+
+Die Macarons können ihr **Parfum** wechseln – sechs Farbwelten von *classique* über
+*néon* bis *nuit à Paris*. Zwei Wege führen hin, auf jeder Seite:
+
+* das Wort **`macaron`** tippen (außerhalb eines Eingabefelds)
+* **fünfmal hintereinander auf ein Macaron klicken** – Logo, Fortschrittsbalken, egal welches
+
+Jeder Auslöser schaltet eine Farbwelt weiter, eine kurze Meldung nennt das neue Parfum,
+und nach einer Runde ist man wieder bei *classique*. Die Wahl bleibt im Browser
+gespeichert. Für den Unterricht ist das harmlos: Es ändert nur die Farben der Macarons,
+nicht die Fragen.
 
 ---
 
 ## Entwicklung
 
 ```bash
-node tools/test.js     # 89 Prüfungen: Auswahl, Reihenfolge, Antworten, Punkte, Codes, Import
+node tools/test.js     # 111 Prüfungen: Auswahl, Reihenfolge, Antworten, Punkte, Codes, Farben, Import
 ```
 
 Das Dateiformat ist bewusst schlicht und verträgt auch Quiz-Dateien der Vorgänger-App

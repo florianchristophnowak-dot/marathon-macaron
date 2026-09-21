@@ -741,35 +741,205 @@
 
   M.theme = {
     KEY: 'macaron.theme',
+
     apply: function (mode) {
       var root = document.documentElement;
       if (mode === 'light' || mode === 'dark') root.setAttribute('data-theme', mode);
       else root.removeAttribute('data-theme');
       return mode;
     },
-    current: function () {
-      return M.storage.get(M.theme.KEY, 'auto');
+
+    /* Was hat die Person gewaehlt? null = noch nichts, dann gilt das System. */
+    stored: function () {
+      var mode = M.storage.get(M.theme.KEY, null);
+      return (mode === 'light' || mode === 'dark') ? mode : null;
     },
+
+    /* Was ist gerade tatsaechlich zu sehen? */
+    effective: function () {
+      var mode = M.theme.stored();
+      if (mode) return mode;
+      try {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      } catch (e) {
+        return 'light';
+      }
+    },
+
     init: function () {
-      return M.theme.apply(M.theme.current());
+      return M.theme.apply(M.theme.stored());
     },
-    /* auto -> hell -> dunkel -> auto */
-    cycle: function () {
-      var order = ['auto', 'light', 'dark'];
-      var next = order[(order.indexOf(M.theme.current()) + 1) % order.length];
-      M.storage.set(M.theme.KEY, next);
-      M.theme.apply(next);
-      return next;
+
+    /* Genau zwei Moeglichkeiten: hell oder dunkel. */
+    toggle: function () {
+      var suivant = M.theme.effective() === 'dark' ? 'light' : 'dark';
+      M.storage.set(M.theme.KEY, suivant);
+      M.theme.apply(suivant);
+      return suivant;
     },
-    label: function (mode) {
-      if (mode === 'light') return '☀️ Hell';
-      if (mode === 'dark') return '🌙 Dunkel';
-      return '🎨 Automatisch';
+
+    /* Das Symbol zeigt, wohin der Klick fuehrt. */
+    icon: function () {
+      return M.theme.effective() === 'dark' ? '☀️' : '🌙';
     },
-    labelFr: function (mode) {
-      if (mode === 'light') return '☀️ Clair';
-      if (mode === 'dark') return '🌙 Sombre';
-      return '🎨 Automatique';
+
+    title: function () {
+      return M.theme.effective() === 'dark' ? 'Helles Farbschema' : 'Dunkles Farbschema';
+    },
+
+    titleFr: function () {
+      return M.theme.effective() === 'dark' ? 'Thème clair' : 'Thème sombre';
+    }
+  };
+
+  /* ---------- Easteregg: die Macarons wechseln das Parfum ----------
+     Zu finden, indem man „macaron" tippt oder fuenfmal auf ein Macaron klickt.
+     Die Sorten liegen als CSS-Variablen auf :root, hier werden sie getauscht. */
+
+  M.PARFUMS = [
+    {
+      id: 'classique', nom: 'classique',
+      couleurs: {
+        framboise: ['#de4f70', '#f6a0b4', '#ffe7ee'],
+        pistache:  ['#6cb175', '#a9d9ad', '#eefaea'],
+        lavande:   ['#9b7fdb', '#c5b1f0', '#f1ecff'],
+        citron:    ['#e6b23c', '#f7d783', '#fff5dc'],
+        myrtille:  ['#5f77dd', '#a3b2f2', '#e9edff'],
+        chocolat:  ['#8a5a45', '#bd8b72', '#f6e6da'],
+        vanille:   ['#d9c39a', '#f0e3c6', '#fffaf0']
+      }
+    },
+    {
+      id: 'pastel', nom: 'pastel',
+      couleurs: {
+        framboise: ['#f0a0b8', '#ffd0dd', '#fff2f6'],
+        pistache:  ['#a8d5a8', '#d4eed0', '#f3fbef'],
+        lavande:   ['#c3b0ea', '#e2d8f8', '#f7f3ff'],
+        citron:    ['#f2d68a', '#fbeec0', '#fffbec'],
+        myrtille:  ['#9aabec', '#cdd5f8', '#f0f3ff'],
+        chocolat:  ['#c49b85', '#e3c9b8', '#faf0e8'],
+        vanille:   ['#ecdfc2', '#f8f0dd', '#fffdf6']
+      }
+    },
+    {
+      id: 'neon', nom: 'néon',
+      couleurs: {
+        framboise: ['#ff2d6f', '#ff7aa5', '#ffe3ed'],
+        pistache:  ['#16d97a', '#74f0b4', '#e2fdef'],
+        lavande:   ['#a94dff', '#cf93ff', '#f3e6ff'],
+        citron:    ['#ffd60a', '#ffe97a', '#fffae0'],
+        myrtille:  ['#2f6bff', '#86a6ff', '#e6edff'],
+        chocolat:  ['#ff7a29', '#ffae78', '#ffeede'],
+        vanille:   ['#eaf23a', '#f4fa92', '#fbfddc']
+      }
+    },
+    {
+      id: 'chocolaterie', nom: 'chocolaterie',
+      couleurs: {
+        framboise: ['#8c4a3a', '#b9796a', '#f3e2da'],
+        pistache:  ['#7d7a3e', '#b2ae74', '#f0efdd'],
+        lavande:   ['#7a5f52', '#ab8e7f', '#efe4dc'],
+        citron:    ['#b9852f', '#dcb46e', '#f8ecd3'],
+        myrtille:  ['#5d4b6b', '#8e7a9e', '#eae3f0'],
+        chocolat:  ['#5a3826', '#8a6047', '#eddfd3'],
+        vanille:   ['#c9ae87', '#e6d4b6', '#fbf4e8']
+      }
+    },
+    {
+      id: 'nuit', nom: 'nuit à Paris',
+      couleurs: {
+        framboise: ['#b3204d', '#e05c85', '#f7dae4'],
+        pistache:  ['#1f7a4d', '#4faa78', '#ddf1e5'],
+        lavande:   ['#5a3d9e', '#8f76d0', '#e7e0f7'],
+        citron:    ['#b8860b', '#e0b34a', '#f9edd2'],
+        myrtille:  ['#2a3f8f', '#6377c4', '#e0e5f6'],
+        chocolat:  ['#4a2c22', '#7b5647', '#ece0d9'],
+        vanille:   ['#b9a06c', '#dcc9a1', '#f8f2e4']
+      }
+    },
+    {
+      id: 'bonbon', nom: 'bonbon',
+      couleurs: {
+        framboise: ['#ff5c8a', '#ffa3bf', '#ffe9f0'],
+        pistache:  ['#57d38a', '#9bebbd', '#e8fbf0'],
+        lavande:   ['#b07cf0', '#d5b6fa', '#f5edff'],
+        citron:    ['#ffc247', '#ffdf95', '#fff7e2'],
+        myrtille:  ['#6b8cff', '#a8bbff', '#ecf1ff'],
+        chocolat:  ['#a9705a', '#d0a18d', '#f7e9e1'],
+        vanille:   ['#ffe9a8', '#fff4d3', '#fffcf0']
+      }
+    }
+  ];
+
+  M.parfum = {
+    KEY: 'macaron.parfum',
+    CODE: 'macaron',
+
+    trouver: function (id) {
+      for (var i = 0; i < M.PARFUMS.length; i++) {
+        if (M.PARFUMS[i].id === id) return M.PARFUMS[i];
+      }
+      return M.PARFUMS[0];
+    },
+
+    current: function () {
+      return M.parfum.trouver(M.storage.get(M.parfum.KEY, 'classique'));
+    },
+
+    apply: function (id) {
+      var parfum = M.parfum.trouver(id);
+      var style = document.documentElement.style;
+      Object.keys(parfum.couleurs).forEach(function (sorte) {
+        var trio = parfum.couleurs[sorte];
+        style.setProperty('--p-' + sorte, trio[0]);
+        style.setProperty('--p-' + sorte + '-clair', trio[1]);
+        style.setProperty('--p-' + sorte + '-ganache', trio[2]);
+      });
+      return parfum;
+    },
+
+    next: function () {
+      var index = M.PARFUMS.indexOf(M.parfum.current());
+      var parfum = M.PARFUMS[(index + 1) % M.PARFUMS.length];
+      M.storage.set(M.parfum.KEY, parfum.id);
+      M.parfum.apply(parfum.id);
+      return parfum;
+    },
+
+    /* Zwei Wege zum Easteregg: „macaron" tippen oder fuenfmal auf ein Macaron
+       klicken. Beide melden das neue Parfum per Toast. */
+    init: function () {
+      M.parfum.apply(M.parfum.current().id);
+
+      var tampon = '';
+      document.addEventListener('keydown', function (event) {
+        if (event.key.length !== 1 || event.ctrlKey || event.metaKey || event.altKey) return;
+        var actif = document.activeElement;
+        /* Beim Tippen in einem Feld soll nichts passieren. */
+        if (actif && (actif.tagName === 'INPUT' || actif.tagName === 'TEXTAREA' || actif.isContentEditable)) return;
+        tampon = (tampon + event.key.toLowerCase()).slice(-M.parfum.CODE.length);
+        if (tampon === M.parfum.CODE) {
+          tampon = '';
+          M.parfum.annoncer(M.parfum.next());
+        }
+      });
+
+      var clics = 0;
+      var minuteur = null;
+      document.addEventListener('click', function (event) {
+        if (!event.target.closest || !event.target.closest('.macaron')) return;
+        clics++;
+        clearTimeout(minuteur);
+        minuteur = setTimeout(function () { clics = 0; }, 1500);
+        if (clics >= 5) {
+          clics = 0;
+          M.parfum.annoncer(M.parfum.next());
+        }
+      });
+    },
+
+    annoncer: function (parfum) {
+      M.toast('🎨 Parfum des macarons : ' + parfum.nom);
     }
   };
 
